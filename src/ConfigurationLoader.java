@@ -3,6 +3,11 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -12,12 +17,33 @@ import org.yaml.snakeyaml.Yaml;
 public class ConfigurationLoader {
     private Map<String, String> configuration = new HashMap<>();
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface Value {
+        String value();
+    }
+
     public void loadProperties(String filename) throws IOException {
         Properties properties = new Properties();
         try (InputStream input = new FileInputStream(filename)) {
             properties.load(input);
             for (String key : properties.stringPropertyNames()) {
                 configuration.put(key, properties.getProperty(key));
+            }
+        }
+    }
+
+    public void injectConfig(Object obj) throws IllegalAccessException {
+        Class<?> clazz = obj.getClass();
+        for (Field field : clazz.getDeclaredFields()) {
+            Value valueAnnotation = field.getAnnotation(Value.class);
+            if (valueAnnotation != null) {
+                String key = valueAnnotation.value().replace("${", "").replace("}", "");
+                String value = getProperty(key);
+                if (value != null) {
+                    field.setAccessible(true);
+                    field.set(obj, value);
+                }
             }
         }
     }
@@ -55,7 +81,7 @@ public class ConfigurationLoader {
 
     private String convertEnvToPropertyKey(String envKey) {
         if (envKey.startsWith("APP_")) {
-            return envKey.substring(4)
+            return envKey.substring(0)
                     .toLowerCase()
                     .replace("_", ".");
         }
@@ -83,8 +109,16 @@ public class ConfigurationLoader {
             System.out.println("Mail Server Port: " + loader.getProperty("app.mail-server.port"));
             System.out.println("Mail Server Username: " + loader.getProperty("app.mail-server.username"));
             System.out.println("Mail Server Password: " + loader.getProperty("app.mail-server.password"));
+
+            // Example usage with annotation
+            AppConfig appConfig = new AppConfig();
+            loader.injectConfig(appConfig);
+
+            System.out.println("App name: " + appConfig.getAppName());
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 }
