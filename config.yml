@@ -1,0 +1,17 @@
+database:
+  url: jdbc:mysql://localhost:3306/mydb
+  username: dbuser
+  password: dbpass
+
+server:
+  port: 8080
+
+app:
+  mail-server:
+    host: smtp.example.com
+    port: 587
+    username: user@example.com
+    password: mailpass
+  name: My Application
+  version: 1.0.0
+  debug: false
