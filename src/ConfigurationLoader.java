@@ -1,5 +1,3 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +31,22 @@ public class ConfigurationLoader {
         }
     }
 
+    public void loadYaml(String filename) throws IOException {
+        Yaml yaml = new Yaml();
+        try (InputStream input = new FileInputStream(filename)) {
+            Map<String, Object> yamlMap = yaml.load(input);
+            flattenMap("", yamlMap);
+        }
+    }
+
+    public void loadConfiguration(String name) throws IOException {
+        loadProperties(name + ".properties");
+        loadYaml(name + ".yml");
+
+        // Load environment variables (overriding previous configurations)
+        loadEnvironmentVariables();
+    }
+
     public void injectConfig(Object obj) throws IllegalAccessException {
         Class<?> clazz = obj.getClass();
         for (Field field : clazz.getDeclaredFields()) {
@@ -45,14 +59,6 @@ public class ConfigurationLoader {
                     field.set(obj, value);
                 }
             }
-        }
-    }
-
-    public void loadYaml(String filename) throws IOException {
-        Yaml yaml = new Yaml();
-        try (InputStream input = new FileInputStream(filename)) {
-            Map<String, Object> yamlMap = yaml.load(input);
-            flattenMap("", yamlMap);
         }
     }
 
@@ -90,35 +96,5 @@ public class ConfigurationLoader {
 
     public String getProperty(String key) {
         return configuration.get(key);
-    }
-
-    public static void main(String[] args) {
-        ConfigurationLoader loader = new ConfigurationLoader();
-        try {
-            // Load properties file
-            //loader.loadProperties("config.properties");
-
-            // Load YAML file
-            loader.loadYaml("config.yml");
-
-            // Load environment variables (overriding previous configurations)
-            loader.loadEnvironmentVariables();
-
-            // Use the configuration
-            System.out.println("Mail Server Host: " + loader.getProperty("app.mail-server.host"));
-            System.out.println("Mail Server Port: " + loader.getProperty("app.mail-server.port"));
-            System.out.println("Mail Server Username: " + loader.getProperty("app.mail-server.username"));
-            System.out.println("Mail Server Password: " + loader.getProperty("app.mail-server.password"));
-
-            // Example usage with annotation
-            AppConfig appConfig = new AppConfig();
-            loader.injectConfig(appConfig);
-
-            System.out.println("App name: " + appConfig.getAppName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
