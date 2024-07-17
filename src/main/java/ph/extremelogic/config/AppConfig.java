@@ -1,3 +1,5 @@
+package ph.extremelogic.config;
+
 public class AppConfig {
     @ConfigurationLoader.Value("${app.name}")
     private String appName;

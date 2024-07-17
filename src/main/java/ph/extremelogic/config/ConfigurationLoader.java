@@ -1,3 +1,5 @@
+package ph.extremelogic.config;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +25,7 @@ public class ConfigurationLoader {
 
     public void loadProperties(String filename) throws IOException {
         Properties properties = new Properties();
-        try (InputStream input = new FileInputStream(filename)) {
+        try (InputStream input = new FileInputStream(filename + ".properties")) {
             properties.load(input);
             for (String key : properties.stringPropertyNames()) {
                 configuration.put(key, properties.getProperty(key));
@@ -33,15 +35,15 @@ public class ConfigurationLoader {
 
     public void loadYaml(String filename) throws IOException {
         Yaml yaml = new Yaml();
-        try (InputStream input = new FileInputStream(filename)) {
+        try (InputStream input = new FileInputStream(filename + ".yml")) {
             Map<String, Object> yamlMap = yaml.load(input);
             flattenMap("", yamlMap);
         }
     }
 
     public void loadConfiguration(String name) throws IOException {
-        loadProperties(name + ".properties");
-        loadYaml(name + ".yml");
+        loadProperties(name );
+        loadYaml(name);
 
         // Load environment variables (overriding previous configurations)
         loadEnvironmentVariables();

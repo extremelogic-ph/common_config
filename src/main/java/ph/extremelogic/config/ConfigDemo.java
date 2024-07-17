@@ -1,3 +1,5 @@
+package ph.extremelogic.config;
+
 import java.io.IOException;
 
 public class ConfigDemo {
