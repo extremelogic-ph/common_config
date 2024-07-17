@@ -77,14 +77,21 @@ public class ConfigurationLoader {
         }
     }
 
+    private Map<String, String> env = System.getenv();
+
     public void loadEnvironmentVariables() {
-        Map<String, String> env = System.getenv();
         for (Map.Entry<String, String> entry : env.entrySet()) {
             String key = convertEnvToPropertyKey(entry.getKey());
             if (key != null) {
                 configuration.put(key, entry.getValue());
             }
         }
+    }
+
+    //private boolean mockEnvVar = false;
+
+    protected void mockEnvironmentVariables(Map<String, String> envVars) {
+        env = envVars;
     }
 
     private String convertEnvToPropertyKey(String envKey) {
