@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +12,16 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ConfigurationLoaderTest {
+
+    private static final String TEST_APP_NAME_PROP = "My Application Prop";
+    private static final String TEST_APP_NAME_YML = "My Application Yml";
+    private static final String TEST_APP_NAME_ENV = "My Application Env";
+
+    private static final String MOCK_ENV_KEY = "APP_NAME";
+    private static final String MOCK_ENV_VALUE = "EnvApp";
+
+    private static final String APP_NAME = "app.name";
+
 
     private ConfigurationLoader loader;
     @TempDir
@@ -25,22 +34,29 @@ class ConfigurationLoaderTest {
 
     @Test
     void testBasicPropertyLoading() throws IOException {
-        loader.loadProperties("config");
-        assertEquals("My Application", loader.getProperty("app.name"));
+        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
     }
 
     @Test
     void testBasicYamlLoading() throws IOException {
-        loader.loadConfiguration("config");
-        assertEquals("My Application", loader.getProperty("app.name"));
+        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(TEST_APP_NAME_YML, loader.getProperty(APP_NAME));
     }
 
     @Test
     void testPropertyOverriding() throws IOException {
-        createPropertiesFile("app.name=TestApp");
-        createYamlFile("app:\n  name: YamlApp");
-        loader.loadConfiguration(tempDir.resolve("config").toString());
-        assertEquals("YamlApp", loader.getProperty("app.name"));
+        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
+
+        loader.loadYaml(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(TEST_APP_NAME_YML, loader.getProperty(APP_NAME));
+
+        Map<String, String> envMap = new HashMap<>();
+        envMap.put(MOCK_ENV_KEY, TEST_APP_NAME_ENV);
+        loader.mockEnvironmentVariables(envMap);
+        loader.loadEnvironmentVariables();
+        assertEquals(TEST_APP_NAME_ENV, loader.getProperty(APP_NAME));
     }
 
     @Test
@@ -48,33 +64,23 @@ class ConfigurationLoaderTest {
         // Set environment variable
 
         Map<String, String> envMap = new HashMap<>();
-        envMap.put("APP_NAME", "EnvApp");
+        envMap.put(MOCK_ENV_KEY, MOCK_ENV_VALUE);
 
-        loader.loadProperties("config");
-        assertEquals("My Application", loader.getProperty("app.name"));
+        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
 
         loader.mockEnvironmentVariables(envMap);
-        loader.loadConfiguration("config");
-        assertEquals("EnvApp", loader.getProperty("app.name"));
+        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        assertEquals(MOCK_ENV_VALUE, loader.getProperty(APP_NAME));
     }
 
     @Test
     void testValueAnnotation() throws IOException, IllegalAccessException {
-        loader.loadConfiguration("config");
+        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
 
         AppConfig appConfig = new AppConfig();
         loader.injectConfig(appConfig);
 
-        assertEquals("My Application", appConfig.getAppName());
-    }
-
-    private void createPropertiesFile(String content) throws IOException {
-        Path configFile = tempDir.resolve("config.properties");
-        Files.writeString(configFile, content);
-    }
-
-    private void createYamlFile(String content) throws IOException {
-        Path configFile = tempDir.resolve("config.yml");
-        Files.writeString(configFile, content);
+        assertEquals(TEST_APP_NAME_YML, appConfig.getAppName());
     }
 }

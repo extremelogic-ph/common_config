@@ -12,6 +12,6 @@ app:
     port: 587
     username: user@example.com
     password: mailpass
-  name: My Application
+  name: My Application Yml
   version: 1.0.0
   debug: false

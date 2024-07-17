@@ -15,6 +15,8 @@ import java.util.Properties;
 import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationLoader {
+    protected final static String DEFAULT_CONFIG_NAME = "config";
+
     private Map<String, String> configuration = new HashMap<>();
 
     @Retention(RetentionPolicy.RUNTIME)
