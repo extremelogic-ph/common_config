@@ -23,11 +23,6 @@ class ConfigurationLoaderTest {
         loader = new ConfigurationLoader();
     }
 
-    public static void displayCurrentWorkingDirectory() {
-        String currentDir = System.getProperty("user.dir");
-        System.out.println("Current working directory: " + currentDir);
-    }
-
     @Test
     void testBasicPropertyLoading() throws IOException {
         loader.loadProperties("config");
