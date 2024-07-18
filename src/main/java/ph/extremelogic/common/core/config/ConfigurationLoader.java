@@ -83,9 +83,9 @@ public class ConfigurationLoader {
      * @throws IOException if an I/O error occurs
      */
     public void loadConfiguration(String name) throws IOException {
+        // Load default configurations
         loadProperties(name);
         loadYaml(name);
-        loadEnvironmentVariables();
 
         // Load active profiles
         String profilesStr = getProperty(ACTIVE_PROFILE_PROPERTY);
@@ -96,9 +96,19 @@ public class ConfigurationLoader {
                 loadYaml(name + "-" + profile.trim());
             }
         }
-        loadEnvironmentVariables();
-    }
 
+        // Load environment variables (higher precedence)
+        loadEnvironmentVariables();
+
+        // Load system properties (even higher precedence)
+        loadSystemProperties();
+
+        // Load command line arguments (highest precedence)
+        //loadCommandLineArguments();
+
+        // Resolve property placeholders
+        resolvePlaceholders();
+    }
     /**
      * Injects configuration values into fields annotated with {@link Value}.
      * @param obj the object to inject configuration into
@@ -287,5 +297,43 @@ public class ConfigurationLoader {
 
     public List<String> getActiveProfiles() {
         return activeProfiles;
+    }
+
+    private void loadSystemProperties() {
+        Properties sysProps = System.getProperties();
+        for (String key : sysProps.stringPropertyNames()) {
+            configuration.put(key, decryptIfNeeded(sysProps.getProperty(key)));
+        }
+    }
+
+    private void loadCommandLineArguments(String[] args) {
+        for (String arg : args) {
+            if (arg.startsWith("--")) {
+                String[] keyValue = arg.substring(2).split("=", 2);
+                if (keyValue.length == 2) {
+                    configuration.put(keyValue[0], decryptIfNeeded(keyValue[1]));
+                }
+            }
+        }
+    }
+
+    private void resolvePlaceholders() {
+        for (Map.Entry<String, String> entry : configuration.entrySet()) {
+            entry.setValue(resolvePlaceholder(entry.getValue()));
+        }
+    }
+
+    private String resolvePlaceholder(String value) {
+        if (value == null) return null;
+        Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
+        Matcher matcher = pattern.matcher(value);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String key = matcher.group(1);
+            String replacement = getProperty(key);
+            matcher.appendReplacement(sb, replacement != null ? replacement : matcher.group());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 }
