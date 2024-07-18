@@ -38,6 +38,11 @@ public class ConfigurationLoader {
 
     private final Map<String, String> configuration = new HashMap<>();
 
+    private Map<String, String> env = System.getenv();
+
+    /**
+     * Annotation to mark fields for configuration value injection.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public @interface Value {
@@ -97,12 +102,43 @@ public class ConfigurationLoader {
                 String value = getProperty(key);
                 if (value != null) {
                     field.setAccessible(true);
-                    field.set(obj, value);
+                    setFieldValue(field, obj, value);
                 }
             }
         }
     }
 
+    /**
+     * Sets the value of a field on the given object, converting the string value to the appropriate type.
+     * @param field the field to set
+     * @param obj the object on which to set the field
+     * @param value the value to set
+     * @throws IllegalAccessException if the field cannot be accessed
+     */
+    private void setFieldValue(Field field, Object obj, String value) throws IllegalAccessException {
+        Class<?> fieldType = field.getType();
+        if (fieldType == String.class) {
+            field.set(obj, value);
+        } else if (fieldType == int.class || fieldType == Integer.class) {
+            field.set(obj, Integer.parseInt(value));
+        } else if (fieldType == long.class || fieldType == Long.class) {
+            field.set(obj, Long.parseLong(value));
+        } else if (fieldType == float.class || fieldType == Float.class) {
+            field.set(obj, Float.parseFloat(value));
+        } else if (fieldType == double.class || fieldType == Double.class) {
+            field.set(obj, Double.parseDouble(value));
+        } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+            field.set(obj, Boolean.parseBoolean(value));
+        } else {
+            throw new IllegalArgumentException("Unsupported field type: " + fieldType);
+        }
+    }
+
+    /**
+     * Recursively flattens a nested map and adds its entries to the configuration map.
+     * @param prefix the current prefix for the keys
+     * @param map the map to flatten
+     */
     private void flattenMap(String prefix, Map<String, Object> map) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
@@ -116,8 +152,9 @@ public class ConfigurationLoader {
         }
     }
 
-    private Map<String, String> env = System.getenv();
-
+    /**
+     * Loads environment variable to override configuration.
+     */
     public void loadEnvironmentVariables() {
         for (Map.Entry<String, String> entry : env.entrySet()) {
             String key = convertEnvToPropertyKey(entry.getKey());
@@ -127,10 +164,19 @@ public class ConfigurationLoader {
         }
     }
 
+    /**
+     * Mock environment variables for testing purposes.
+     * @param envVars the mock environment variables
+     */
     protected void mockEnvironmentVariables(Map<String, String> envVars) {
         env = envVars;
     }
 
+    /**
+     * Converts an environment variable key to a property key format.
+     * @param envKey the environment variable key
+     * @return the converted property key, or null if the key is not valid
+     */
     private String convertEnvToPropertyKey(String envKey) {
         if (envKey.startsWith("APP_")) {
             return envKey.substring(0)
@@ -149,6 +195,14 @@ public class ConfigurationLoader {
         return configuration.get(key);
     }
 
+    /**
+     * Gets an input stream for a configuration file. Loading initially from resource
+     * alse from current directory.
+     * @param filename the name of the file
+     * @param extension the file extension
+     * @return the input stream
+     * @throws IOException if an I/O error occurs
+     */
     private InputStream getInputStream(String filename, String extension) throws IOException {
         InputStream input = getClass().getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {

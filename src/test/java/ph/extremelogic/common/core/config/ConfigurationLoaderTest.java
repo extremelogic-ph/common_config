@@ -24,13 +24,17 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigurationLoaderTest {
 
     private static final String TEST_APP_NAME_PROP = "My Application Prop";
     private static final String TEST_APP_NAME_YML = "My Application Yml";
     private static final String TEST_APP_NAME_ENV = "My Application Env";
+    private static final int TEST_APP_VERSION_YML = 1;
+    private static final boolean TEST_APP_ACTIVE_YML = true;
+    private static final long TEST_APP_TIMEOUT_YML = 3000L;
+    private static final double DELTA = 1e-6;
 
     private static final String MOCK_ENV_KEY = "APP_NAME";
     private static final String MOCK_ENV_VALUE = "EnvApp";
@@ -97,5 +101,11 @@ class ConfigurationLoaderTest {
         loader.injectConfig(appConfig);
 
         assertEquals(TEST_APP_NAME_YML, appConfig.getAppName());
+        assertFalse(appConfig.isAppDebug());
+        assertTrue(appConfig.isAppVerbose());
+        assertEquals(879, appConfig.getAppTimeout());
+        assertEquals(143, appConfig.getAppDelay());
+        assertEquals(0.678, appConfig.getThreshold(), DELTA);
+        assertEquals(9.3136, appConfig.getFrequency(), DELTA);
     }
 }

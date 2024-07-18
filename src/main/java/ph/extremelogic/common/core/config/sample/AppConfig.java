@@ -28,19 +28,88 @@ public class AppConfig {
     @ConfigurationLoader.Value("${app.name}")
     private String appName;
 
-    /**
-     * Gets the application name.
-     * @return the application name
-     */
+    //@ConfigurationLoader.Value("${app.version}")
+    //private int appVersion;
+
+    @ConfigurationLoader.Value("${app.debug}")
+    private boolean appDebug;
+
+    @ConfigurationLoader.Value("${app.verbose}")
+    private boolean appVerbose;
+
+    @ConfigurationLoader.Value("${app.timeout}")
+    private long appTimeout;
+
+    @ConfigurationLoader.Value("${app.delay}")
+    private int appDelay;
+
+    @ConfigurationLoader.Value("${app.threshold}")
+    private float threshold;
+
+    @ConfigurationLoader.Value("${app.frequency}")
+    private float frequency;
+
     public String getAppName() {
         return appName;
     }
 
-    /**
-     * Sets the application name.
-     * @param appName the application name to set
-     */
     public void setAppName(String appName) {
         this.appName = appName;
+    }
+
+   // public int getAppVersion() {
+   //     return appVersion;
+    //}
+
+    //public void setAppVersion(int appVersion) {
+    //    this.appVersion = appVersion;
+    //}
+
+    public boolean isAppDebug() {
+        return appDebug;
+    }
+
+    public void setAppDebug(boolean appDebug) {
+        this.appDebug = appDebug;
+    }
+
+    public boolean isAppVerbose() {
+        return appVerbose;
+    }
+
+    public void setAppVerbose(boolean appVerbose) {
+        this.appVerbose = appVerbose;
+    }
+
+    public long getAppTimeout() {
+        return appTimeout;
+    }
+
+    public void setAppTimeout(long appTimeout) {
+        this.appTimeout = appTimeout;
+    }
+
+    public int getAppDelay() {
+        return appDelay;
+    }
+
+    public void setAppDelay(int appDelay) {
+        this.appDelay = appDelay;
+    }
+
+    public float getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(float threshold) {
+        this.threshold = threshold;
+    }
+
+    public float getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(float frequency) {
+        this.frequency = frequency;
     }
 }

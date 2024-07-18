@@ -15,3 +15,8 @@ app:
   name: My Application Yml
   version: 1.0.0
   debug: false
+  verbose: true
+  timeout: 879
+  delay: 143
+  threshold: 0.678
+  frequency: 9.3136
