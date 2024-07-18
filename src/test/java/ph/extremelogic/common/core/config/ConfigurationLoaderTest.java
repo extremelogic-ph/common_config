@@ -108,4 +108,24 @@ class ConfigurationLoaderTest {
         assertEquals(0.678, appConfig.getThreshold(), DELTA);
         assertEquals(9.3136, appConfig.getFrequency(), DELTA);
     }
+
+    @Test
+    void testEncrypt() throws IOException, IllegalAccessException {
+        String originalPassword = "secretPassword";
+        String encryptedPassword = ConfigurationLoader.encrypt(originalPassword);
+
+        System.out.println("Encrypted password: " + encryptedPassword);
+
+        assertTrue(encryptedPassword.startsWith("ENC(") && encryptedPassword.endsWith(")"),
+                "Encrypted password should be wrapped in ENC()");
+
+        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+
+
+        AppConfig appConfig = new AppConfig();
+        loader.injectConfig(appConfig);
+
+        assertEquals("secretPassword", loader.getProperty("app.password"));
+        assertEquals("secretPassword", appConfig.getPassword());
+    }
 }

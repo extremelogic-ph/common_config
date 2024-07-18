@@ -49,6 +49,17 @@ public class AppConfig {
     @ConfigurationLoader.Value("${app.frequency}")
     private float frequency;
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @ConfigurationLoader.Value("${app.password}")
+    private String password;
+
     public String getAppName() {
         return appName;
     }

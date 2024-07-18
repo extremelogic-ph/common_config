@@ -23,11 +23,17 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * A utility class for loading and managing application configuration from various sources.
@@ -35,6 +41,8 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class ConfigurationLoader {
     public static final String DEFAULT_CONFIG_NAME = "config";
+    private static final String ENCRYPTION_KEY = "your16charEncKey"; // Replace with your actual encryption key
+
 
     private final Map<String, String> configuration = new HashMap<>();
 
@@ -59,7 +67,8 @@ public class ConfigurationLoader {
         try (InputStream input = getInputStream(filename, ".properties")) {
             properties.load(input);
             for (String key : properties.stringPropertyNames()) {
-                configuration.put(key, properties.getProperty(key));
+                String value = properties.getProperty(key);
+                configuration.put(key, decryptIfNeeded(value));
             }
         }
     }
@@ -147,7 +156,7 @@ public class ConfigurationLoader {
                 Map<String, Object> nestedMap = (Map<String, Object>) entry.getValue();
                 flattenMap(key, nestedMap);
             } else {
-                configuration.put(key, entry.getValue().toString());
+                configuration.put(key, decryptIfNeeded(entry.getValue().toString()));
             }
         }
     }
@@ -159,7 +168,7 @@ public class ConfigurationLoader {
         for (Map.Entry<String, String> entry : env.entrySet()) {
             String key = convertEnvToPropertyKey(entry.getKey());
             if (key != null) {
-                configuration.put(key, entry.getValue());
+                configuration.put(key, decryptIfNeeded(entry.getValue()));
             }
         }
     }
@@ -209,5 +218,54 @@ public class ConfigurationLoader {
             input = Files.newInputStream(Paths.get(filename + extension));
         }
         return input;
+    }
+
+    /**
+     * Decrypts the value if it's encrypted, otherwise returns the original value.
+     * @param value the value to decrypt if needed
+     * @return the decrypted value or the original value if not encrypted
+     */
+    private String decryptIfNeeded(String value) {
+        Pattern pattern = Pattern.compile("ENC\\((.*)\\)");
+        Matcher matcher = pattern.matcher(value);
+        if (matcher.find()) {
+            String encryptedValue = matcher.group(1);
+            return decrypt(encryptedValue);
+        }
+        return value;
+    }
+
+    /**
+     * Decrypts an encrypted value.
+     * @param encryptedValue the encrypted value to decrypt
+     * @return the decrypted value
+     */
+    private String decrypt(String encryptedValue) {
+        try {
+            byte[] encryptedBytes = Base64.getDecoder().decode(encryptedValue);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec secretKey = new SecretKeySpec(ENCRYPTION_KEY.getBytes(), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            return new String(cipher.doFinal(encryptedBytes));
+        } catch (Exception e) {
+            throw new RuntimeException("Error decrypting value", e);
+        }
+    }
+
+    /**
+     * Encrypts a value.
+     * @param value the value to encrypt
+     * @return the encrypted value wrapped in ENC()
+     */
+    public static String encrypt(String value) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec secretKey = new SecretKeySpec(ENCRYPTION_KEY.getBytes(), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] encryptedBytes = cipher.doFinal(value.getBytes());
+            return "ENC(" + Base64.getEncoder().encodeToString(encryptedBytes) + ")";
+        } catch (Exception e) {
+            throw new RuntimeException("Error encrypting value", e);
+        }
     }
 }
