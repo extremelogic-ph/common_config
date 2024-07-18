@@ -62,6 +62,34 @@ The library loads configuration in the following order, with later sources overr
 
 Environment variables should be prefixed with APP_ and use underscores instead of dots. For example, app.name would be APP_NAME.
 
+## Encryption and Decryption
+
+ConfigurationLoader supports encrypted property values. To use this feature:
+
+1. Set the encryption key:
+```
+export APP_ENCRYPTION_KEY=your-secret-key
+```
+or
+
+```
+java -Dapp.encryption.key=your-secret-key -jar your-app.jar
+```
+
+2. Encrypt sensitive values:
+
+```
+String encryptedValue = configLoader.encrypt("sensitive-value");
+```
+
+3. Use encrypted values in your configuration files:
+
+```
+db.password=ENC(encrypted-value-here)
+```
+
+The ConfigurationLoader will automatically decrypt these values when loading the configuration.
+
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
