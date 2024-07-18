@@ -48,6 +48,8 @@ public class ConfigurationLoader {
 
     private Map<String, String> env = System.getenv();
 
+    private PropertyEncryptor encryptor;
+
     /**
      * Annotation to mark fields for configuration value injection.
      */
@@ -236,45 +238,6 @@ public class ConfigurationLoader {
     }
 
     /**
-     * Decrypts an encrypted value.
-     * @param encryptedValue the encrypted value to decrypt
-     * @return the decrypted value
-     */
-    private String decrypt(String encryptedValue) {
-        try {
-            byte[] encryptedBytes = Base64.getDecoder().decode(encryptedValue);
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            SecretKeySpec secretKey = new SecretKeySpec(getEncryptionKey().getBytes(), "AES");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            return new String(cipher.doFinal(encryptedBytes));
-        } catch (Exception e) {
-            throw new RuntimeException("Error decrypting value", e);
-        }
-    }
-
-    /**
-     * Encrypts a value.
-     * @param value the value to encrypt
-     * @return the encrypted value wrapped in ENC()
-     */
-    /**
-     * Encrypts a value.
-     * @param value the value to encrypt
-     * @return the encrypted value wrapped in ENC()
-     */
-    public String encrypt(String value) {
-        try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            SecretKeySpec secretKey = new SecretKeySpec(getEncryptionKey().getBytes(), "AES");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            byte[] encryptedBytes = cipher.doFinal(value.getBytes());
-            return "ENC(" + Base64.getEncoder().encodeToString(encryptedBytes) + ")";
-        } catch (Exception e) {
-            throw new RuntimeException("Error encrypting value", e);
-        }
-    }
-
-    /**
      * Gets the encryption key from environment variables, system properties, or configuration.
      * @return the encryption key
      * @throws IllegalStateException if the encryption key is not found
@@ -291,5 +254,34 @@ public class ConfigurationLoader {
             throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROPERTY);
         }
         return key;
+    }
+
+    /**
+     * Initializes the PropertyEncryptor with the encryption key.
+     */
+    private void initializeEncryptor() {
+        if (encryptor == null) {
+            encryptor = new PropertyEncryptor(getEncryptionKey());
+        }
+    }
+
+    /**
+     * Encrypts a value.
+     * @param value the value to encrypt
+     * @return the encrypted value wrapped in ENC()
+     */
+    public String encrypt(String value) {
+        initializeEncryptor();
+        return "ENC(" + encryptor.encrypt(value) + ")";
+    }
+
+    /**
+     * Decrypts an encrypted value.
+     * @param encryptedValue the encrypted value to decrypt
+     * @return the decrypted value
+     */
+    private String decrypt(String encryptedValue) {
+        initializeEncryptor();
+        return encryptor.decrypt(encryptedValue);
     }
 }
