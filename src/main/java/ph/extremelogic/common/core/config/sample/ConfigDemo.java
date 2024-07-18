@@ -12,7 +12,9 @@
  * limitations under the License.
  */
 
-package ph.extremelogic.common.core.config;
+package ph.extremelogic.common.core.config.sample;
+
+import ph.extremelogic.common.core.config.ConfigurationLoader;
 
 import java.io.IOException;
 

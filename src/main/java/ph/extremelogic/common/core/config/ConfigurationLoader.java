@@ -14,7 +14,6 @@
 
 package ph.extremelogic.common.core.config;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.ElementType;
@@ -35,7 +34,7 @@ import org.yaml.snakeyaml.Yaml;
  * Supports loading from properties files, YAML files, and environment variables.
  */
 public class ConfigurationLoader {
-    protected static final String DEFAULT_CONFIG_NAME = "config";
+    public static final String DEFAULT_CONFIG_NAME = "config";
 
     private final Map<String, String> configuration = new HashMap<>();
 

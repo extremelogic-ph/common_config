@@ -17,6 +17,7 @@ package ph.extremelogic.common.core.config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import ph.extremelogic.common.core.config.sample.AppConfig;
 
 import java.io.IOException;
 import java.nio.file.Path;
