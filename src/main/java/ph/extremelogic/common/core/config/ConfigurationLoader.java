@@ -41,7 +41,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class ConfigurationLoader {
     public static final String DEFAULT_CONFIG_NAME = "config";
-    private static final String ENCRYPTION_KEY = "your16charEncKey"; // Replace with your actual encryption key
+    public static final String ENCRYPTION_KEY_PROPERTY = "app.encryption.key";
 
 
     private final Map<String, String> configuration = new HashMap<>();
@@ -244,7 +244,7 @@ public class ConfigurationLoader {
         try {
             byte[] encryptedBytes = Base64.getDecoder().decode(encryptedValue);
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            SecretKeySpec secretKey = new SecretKeySpec(ENCRYPTION_KEY.getBytes(), "AES");
+            SecretKeySpec secretKey = new SecretKeySpec(getEncryptionKey().getBytes(), "AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             return new String(cipher.doFinal(encryptedBytes));
         } catch (Exception e) {
@@ -257,15 +257,39 @@ public class ConfigurationLoader {
      * @param value the value to encrypt
      * @return the encrypted value wrapped in ENC()
      */
-    public static String encrypt(String value) {
+    /**
+     * Encrypts a value.
+     * @param value the value to encrypt
+     * @return the encrypted value wrapped in ENC()
+     */
+    public String encrypt(String value) {
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            SecretKeySpec secretKey = new SecretKeySpec(ENCRYPTION_KEY.getBytes(), "AES");
+            SecretKeySpec secretKey = new SecretKeySpec(getEncryptionKey().getBytes(), "AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             byte[] encryptedBytes = cipher.doFinal(value.getBytes());
             return "ENC(" + Base64.getEncoder().encodeToString(encryptedBytes) + ")";
         } catch (Exception e) {
             throw new RuntimeException("Error encrypting value", e);
         }
+    }
+
+    /**
+     * Gets the encryption key from environment variables, system properties, or configuration.
+     * @return the encryption key
+     * @throws IllegalStateException if the encryption key is not found
+     */
+    private String getEncryptionKey() {
+        String key = System.getenv(ENCRYPTION_KEY_PROPERTY);
+        if (key == null) {
+            key = System.getProperty(ENCRYPTION_KEY_PROPERTY);
+        }
+        if (key == null) {
+            key = configuration.get(ENCRYPTION_KEY_PROPERTY);
+        }
+        if (key == null) {
+            throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROPERTY);
+        }
+        return key;
     }
 }

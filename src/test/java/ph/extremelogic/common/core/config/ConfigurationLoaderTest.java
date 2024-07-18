@@ -41,6 +41,8 @@ class ConfigurationLoaderTest {
 
     private static final String APP_NAME = "app.name";
 
+    private static final String TEST_ENCRYPTION_KEY = "your16charEncKey";
+
 
     private ConfigurationLoader loader;
     @TempDir
@@ -49,6 +51,9 @@ class ConfigurationLoaderTest {
     @BeforeEach
     void setUp() {
         loader = new ConfigurationLoader();
+
+        // Set the encryption key as a system property for testing
+        System.setProperty(ConfigurationLoader.ENCRYPTION_KEY_PROPERTY, TEST_ENCRYPTION_KEY);
     }
 
     @Test
@@ -112,7 +117,7 @@ class ConfigurationLoaderTest {
     @Test
     void testEncrypt() throws IOException, IllegalAccessException {
         String originalPassword = "secretPassword";
-        String encryptedPassword = ConfigurationLoader.encrypt(originalPassword);
+        String encryptedPassword = loader.encrypt(originalPassword);
 
         System.out.println("Encrypted password: " + encryptedPassword);
 
