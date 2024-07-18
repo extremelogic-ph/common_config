@@ -27,27 +27,29 @@ public class ConfigurationLoader {
 
     public void loadProperties(String filename) throws IOException {
         Properties properties = new Properties();
-        try (InputStream input = new FileInputStream(filename + ".properties")) {
-            properties.load(input);
-            for (String key : properties.stringPropertyNames()) {
-                configuration.put(key, properties.getProperty(key));
+        try (InputStream input = getInputStream(filename, ".properties")) {
+            if (input != null) {
+                properties.load(input);
+                for (String key : properties.stringPropertyNames()) {
+                    configuration.put(key, properties.getProperty(key));
+                }
             }
         }
     }
 
     public void loadYaml(String filename) throws IOException {
         Yaml yaml = new Yaml();
-        try (InputStream input = new FileInputStream(filename + ".yml")) {
-            Map<String, Object> yamlMap = yaml.load(input);
-            flattenMap("", yamlMap);
+        try (InputStream input = getInputStream(filename, ".yml")) {
+            if (input != null) {
+                Map<String, Object> yamlMap = yaml.load(input);
+                flattenMap("", yamlMap);
+            }
         }
     }
 
     public void loadConfiguration(String name) throws IOException {
-        loadProperties(name );
+        loadProperties(name);
         loadYaml(name);
-
-        // Load environment variables (overriding previous configurations)
         loadEnvironmentVariables();
     }
 
@@ -90,8 +92,6 @@ public class ConfigurationLoader {
         }
     }
 
-    //private boolean mockEnvVar = false;
-
     protected void mockEnvironmentVariables(Map<String, String> envVars) {
         env = envVars;
     }
@@ -107,5 +107,13 @@ public class ConfigurationLoader {
 
     public String getProperty(String key) {
         return configuration.get(key);
+    }
+
+    private InputStream getInputStream(String filename, String extension) throws IOException {
+        InputStream input = getClass().getClassLoader().getResourceAsStream(filename + extension);
+        if (input == null) {
+            input = new FileInputStream(filename + extension);
+        }
+        return input;
     }
 }
