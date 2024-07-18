@@ -23,32 +23,21 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-
-/**
- * A utility class for loading and managing application configuration from various sources.
- * Supports loading from properties files, YAML files, and environment variables.
- */
 public class ConfigurationLoader {
     public static final String DEFAULT_CONFIG_NAME = "config";
     public static final String ENCRYPTION_KEY_PROPERTY = "app.encryption.key";
-
+    public static final String ACTIVE_PROFILE_PROPERTY = "app.profiles.active";
 
     private final Map<String, String> configuration = new HashMap<>();
-
     private Map<String, String> env = System.getenv();
-
     private PropertyEncryptor encryptor;
+    private List<String> activeProfiles = new ArrayList<>();
 
     /**
      * Annotation to mark fields for configuration value injection.
@@ -96,6 +85,17 @@ public class ConfigurationLoader {
     public void loadConfiguration(String name) throws IOException {
         loadProperties(name);
         loadYaml(name);
+        loadEnvironmentVariables();
+
+        // Load active profiles
+        String profilesStr = getProperty(ACTIVE_PROFILE_PROPERTY);
+        if (profilesStr != null) {
+            activeProfiles = Arrays.asList(profilesStr.split(","));
+            for (String profile : activeProfiles) {
+                loadProperties(name + "-" + profile.trim());
+                loadYaml(name + "-" + profile.trim());
+            }
+        }
         loadEnvironmentVariables();
     }
 
@@ -283,5 +283,9 @@ public class ConfigurationLoader {
     private String decrypt(String encryptedValue) {
         initializeEncryptor();
         return encryptor.decrypt(encryptedValue);
+    }
+
+    public List<String> getActiveProfiles() {
+        return activeProfiles;
     }
 }
