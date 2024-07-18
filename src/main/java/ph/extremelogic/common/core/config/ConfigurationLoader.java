@@ -1,4 +1,4 @@
-package ph.extremelogic.config;
+package ph.extremelogic.common.core.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;

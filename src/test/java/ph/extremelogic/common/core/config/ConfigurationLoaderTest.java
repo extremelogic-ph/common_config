@@ -1,4 +1,4 @@
-package ph.extremelogic.config;
+package ph.extremelogic.common.core.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

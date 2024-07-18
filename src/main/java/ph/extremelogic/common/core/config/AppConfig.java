@@ -1,4 +1,4 @@
-package ph.extremelogic.config;
+package ph.extremelogic.common.core.config;
 
 public class AppConfig {
     @ConfigurationLoader.Value("${app.name}")
