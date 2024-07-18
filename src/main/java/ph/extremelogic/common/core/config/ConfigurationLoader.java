@@ -22,16 +22,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import org.yaml.snakeyaml.Yaml;
 
+/**
+ * A utility class for loading and managing application configuration from various sources.
+ * Supports loading from properties files, YAML files, and environment variables.
+ */
 public class ConfigurationLoader {
-    protected final static String DEFAULT_CONFIG_NAME = "config";
+    protected static final String DEFAULT_CONFIG_NAME = "config";
 
-    private Map<String, String> configuration = new HashMap<>();
+    private final Map<String, String> configuration = new HashMap<>();
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
@@ -39,34 +45,50 @@ public class ConfigurationLoader {
         String value();
     }
 
+    /**
+     * Loads properties from a .properties file.
+     * @param filename the name of the file to load (without extension)
+     * @throws IOException if an I/O error occurs
+     */
     public void loadProperties(String filename) throws IOException {
         Properties properties = new Properties();
         try (InputStream input = getInputStream(filename, ".properties")) {
-            if (input != null) {
-                properties.load(input);
-                for (String key : properties.stringPropertyNames()) {
-                    configuration.put(key, properties.getProperty(key));
-                }
+            properties.load(input);
+            for (String key : properties.stringPropertyNames()) {
+                configuration.put(key, properties.getProperty(key));
             }
         }
     }
 
+    /**
+     * Loads configuration from a YAML file.
+     * @param filename the name of the file to load (without extension)
+     * @throws IOException if an I/O error occurs
+     */
     public void loadYaml(String filename) throws IOException {
         Yaml yaml = new Yaml();
         try (InputStream input = getInputStream(filename, ".yml")) {
-            if (input != null) {
-                Map<String, Object> yamlMap = yaml.load(input);
-                flattenMap("", yamlMap);
-            }
+            Map<String, Object> yamlMap = yaml.load(input);
+            flattenMap("", yamlMap);
         }
     }
 
+    /**
+     * Loads configuration from all supported sources (properties, YAML, environment variables).
+     * @param name the base name of the configuration files to load
+     * @throws IOException if an I/O error occurs
+     */
     public void loadConfiguration(String name) throws IOException {
         loadProperties(name);
         loadYaml(name);
         loadEnvironmentVariables();
     }
 
+    /**
+     * Injects configuration values into fields annotated with {@link Value}.
+     * @param obj the object to inject configuration into
+     * @throws IllegalAccessException if the fields cannot be accessed
+     */
     public void injectConfig(Object obj) throws IllegalAccessException {
         Class<?> clazz = obj.getClass();
         for (Field field : clazz.getDeclaredFields()) {
@@ -119,6 +141,11 @@ public class ConfigurationLoader {
         return null;
     }
 
+    /**
+     * Gets a configuration property value.
+     * @param key the key of the property to retrieve
+     * @return the value of the property, or null if not found
+     */
     public String getProperty(String key) {
         return configuration.get(key);
     }
@@ -126,7 +153,7 @@ public class ConfigurationLoader {
     private InputStream getInputStream(String filename, String extension) throws IOException {
         InputStream input = getClass().getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {
-            input = new FileInputStream(filename + extension);
+            input = Files.newInputStream(Paths.get(filename + extension));
         }
         return input;
     }

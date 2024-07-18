@@ -14,14 +14,30 @@
 
 package ph.extremelogic.common.core.config;
 
+/**
+ * Represents the application configuration.
+ * This class uses the {@link ConfigurationLoader.Value} annotation to inject configuration values.
+ */
 public class AppConfig {
+
+    /**
+     * The name of the application.
+     */
     @ConfigurationLoader.Value("${app.name}")
     private String appName;
 
+    /**
+     * Gets the application name.
+     * @return the application name
+     */
     public String getAppName() {
         return appName;
     }
 
+    /**
+     * Sets the application name.
+     * @param appName the application name to set
+     */
     public void setAppName(String appName) {
         this.appName = appName;
     }

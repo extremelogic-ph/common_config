@@ -16,6 +16,9 @@ package ph.extremelogic.common.core.config;
 
 import java.io.IOException;
 
+/**
+ * A demonstration class showing how to use the ConfigurationLoader.
+ */
 public class ConfigDemo {
     public static void main(String[] args) {
         ConfigurationLoader loader = new ConfigurationLoader();
