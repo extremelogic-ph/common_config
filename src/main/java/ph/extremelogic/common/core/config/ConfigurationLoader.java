@@ -17,7 +17,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -31,7 +30,8 @@ public class ConfigurationLoader {
 
     public static final String DEFAULT_CONFIG_NAME = "config";
     public static final String ENCRYPTION_KEY_PROPERTY = DEFAULT_CONFIG_NAME + ".encryption.key";
-    public static final String ACTIVE_PROFILE_PROPERTY = DEFAULT_CONFIG_NAME + ".profiles.active";
+    public static final String CONFIG_PROFILES_ACTIVE_PROP = DEFAULT_CONFIG_NAME + ".profiles.active";
+    public static final String CONFIG_PROFILES_ACTIVE_ENV = DEFAULT_CONFIG_NAME.toUpperCase() + "_PROFILES_ACTIVE";
 
     private final Map<String, String> configuration = new HashMap<>();
     private Map<String, String> env = System.getenv();
@@ -83,16 +83,16 @@ public class ConfigurationLoader {
 
     /**
      * Loads configuration from all supported sources (properties, YAML, environment variables).
-     * @param name the base name of the configuration files to load
      * @throws IOException if an I/O error occurs
      */
-    public void loadConfiguration(String name) throws IOException {
+    public void loadConfiguration(String []args) {
+        var name = DEFAULT_CONFIG_NAME;
+
         // Load default configurations
         loadProperties(name);
         loadYaml(name);
 
-        // TODO create method here to retrieve the CONFIG_PROFILES_ACTIVE by highest precedance and save it
-        var activeProfile = getConfigProfilesActiveByPrecedance();
+        var activeProfile = getConfigProfilesActiveByPrecedence(args);
 
         // Load active profiles
         if (activeProfile != null) {
@@ -103,7 +103,9 @@ public class ConfigurationLoader {
                 loadProperties(filename);
                 loadYaml(filename);
             }
-            configuration.put(ACTIVE_PROFILE_PROPERTY, activeProfile);
+            // Properties and Yaml calls above had probably
+            // overwritten the CONFIG_PROFILES_ACTIVE
+            configuration.put(CONFIG_PROFILES_ACTIVE_PROP, activeProfile);
         }
 
         // Load environment variables (higher precedence)
@@ -113,26 +115,34 @@ public class ConfigurationLoader {
         loadSystemProperties();
 
         // Load command line arguments (highest precedence)
-        //loadCommandLineArguments();
+        if (args != null && args.length > 0) {
+            loadCommandLineArguments(args);
+        }
 
         // Resolve property placeholders
         resolvePlaceholders();
     }
 
-    private String getConfigProfilesActiveByPrecedance() {
-        var defaultProfile = configuration.get(ACTIVE_PROFILE_PROPERTY);
+    public void loadConfiguration() throws IOException {
+        loadConfiguration(null);
+    }
+
+    private String getConfigProfilesActiveByPrecedence(String []args) {
+        var defaultProfile = configuration.get(CONFIG_PROFILES_ACTIVE_PROP);
 
         var profile = "";
         // TODO Load command line
 
         // TODO Load system properties if previous is null
 
-        // TODO Load env variable if previous is null
-        profile = env.get("CONFIG_PROFILES_ACTIVE");
+        // Load env variable if previous is null
+        profile = env.get(CONFIG_PROFILES_ACTIVE_ENV);
 
         // TODO return default
-        if (profile != null && !profile.isBlank())
+        if (profile != null && !profile.isBlank()) {
             return profile;
+        }
+
         return defaultProfile;
     }
 

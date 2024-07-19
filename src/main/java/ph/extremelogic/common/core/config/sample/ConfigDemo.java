@@ -25,7 +25,7 @@ public class ConfigDemo {
     public static void main(String[] args) {
         ConfigurationLoader loader = new ConfigurationLoader();
         try {
-            loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+            loader.loadConfiguration();
 
             // Use the configuration
             System.out.println("Mail Server Host: " + loader.getProperty("app.mail-server.host"));

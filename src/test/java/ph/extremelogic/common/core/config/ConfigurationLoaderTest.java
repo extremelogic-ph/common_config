@@ -64,7 +64,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void testBasicYamlLoading() throws IOException {
-        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadConfiguration();
         assertEquals(TEST_APP_NAME_YML, loader.getProperty(APP_NAME));
     }
 
@@ -94,13 +94,13 @@ class ConfigurationLoaderTest {
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
 
         loader.mockEnvironmentVariables(envMap);
-        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadConfiguration();
         assertEquals(MOCK_ENV_VALUE, loader.getProperty(APP_NAME));
     }
 
     @Test
     void testValueAnnotation() throws IOException, IllegalAccessException {
-        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadConfiguration();
 
         AppConfig appConfig = new AppConfig();
         loader.injectConfig(appConfig);
@@ -124,7 +124,7 @@ class ConfigurationLoaderTest {
         assertTrue(encryptedPassword.startsWith("ENC(") && encryptedPassword.endsWith(")"),
                 "Encrypted password should be wrapped in ENC()");
 
-        loader.loadConfiguration(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadConfiguration();
 
 
         AppConfig appConfig = new AppConfig();
