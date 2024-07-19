@@ -61,21 +61,22 @@ public class ConfigurationLoader {
                 configuration.put(key, decryptIfNeeded(value));
             }
         } catch (IOException e) {
-            logger.warn("Unable to load " + name + ".properties");
+            logger.warn("Unable to load " + name + ".properties " + e.getLocalizedMessage());
         }
     }
 
 
     /**
      * Loads configuration from a YAML file.
-     * @param filename the name of the file to load (without extension)
-     * @throws IOException if an I/O error occurs
+     * @param name the name of the file to load (without extension)
      */
-    public void loadYaml(String filename) throws IOException {
+    public void loadYaml(String name) {
         Yaml yaml = new Yaml();
-        try (var input = getInputStream(filename, ".yml")) {
+        try (var input = getInputStream(name, ".yml")) {
             Map<String, Object> yamlMap = yaml.load(input);
             flattenMap("", yamlMap);
+        } catch (IOException e) {
+            logger.warn("Unable to load " + name + ".yml " + e.getLocalizedMessage());
         }
     }
 
