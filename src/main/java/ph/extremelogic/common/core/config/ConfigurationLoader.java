@@ -199,12 +199,9 @@ public class ConfigurationLoader {
      * @return the converted property key, or null if the key is not valid
      */
     private String convertEnvToPropertyKey(String envKey) {
-        if (envKey.startsWith("APP_")) {
-            return envKey.substring(0)
+            return envKey
                     .toLowerCase()
                     .replace("_", ".");
-        }
-        return null;
     }
 
     /**
