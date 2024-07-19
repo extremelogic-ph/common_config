@@ -1,12 +1,7 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distribut
+        return encKey;ed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -22,13 +17,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationLoader {
+    private static final Log logger = LogFactory.getLog(ConfigurationLoader.class);
+
     public static final String DEFAULT_CONFIG_NAME = "config";
     public static final String ENCRYPTION_KEY_PROPERTY = DEFAULT_CONFIG_NAME + ".encryption.key";
     public static final String ACTIVE_PROFILE_PROPERTY = DEFAULT_CONFIG_NAME + ".profiles.active";
@@ -49,19 +49,22 @@ public class ConfigurationLoader {
 
     /**
      * Loads properties from a .properties file.
-     * @param filename the name of the file to load (without extension)
+     * @param name the name of the file to load (without extension)
      * @throws IOException if an I/O error occurs
      */
-    public void loadProperties(String filename) throws IOException {
+    public void loadProperties(String name) {
         var properties = new Properties();
-        try (var input = getInputStream(filename, ".properties")) {
+        try (var input = getInputStream(name, ".properties")) {
             properties.load(input);
             for (var key : properties.stringPropertyNames()) {
                 var value = properties.getProperty(key);
                 configuration.put(key, decryptIfNeeded(value));
             }
+        } catch (IOException e) {
+            logger.warn("Unable to load " + name + ".properties");
         }
     }
+
 
     /**
      * Loads configuration from a YAML file.
@@ -76,6 +79,7 @@ public class ConfigurationLoader {
         }
     }
 
+
     /**
      * Loads configuration from all supported sources (properties, YAML, environment variables).
      * @param name the base name of the configuration files to load
@@ -86,15 +90,19 @@ public class ConfigurationLoader {
         loadProperties(name);
         loadYaml(name);
 
+        // TODO create method here to retrieve the CONFIG_PROFILES_ACTIVE by highest precedance and save it
+        var activeProfile = getConfigProfilesActiveByPrecedance();
+
         // Load active profiles
-        String profilesStr = getProperty(ACTIVE_PROFILE_PROPERTY);
-        if (profilesStr != null) {
-            activeProfiles = Arrays.asList(profilesStr.split(","));
+        if (activeProfile != null) {
+            activeProfiles = Arrays.asList(activeProfile.split(","));
             for (String profile : activeProfiles) {
                 var filename = name + "-" + profile.trim();
+
                 loadProperties(filename);
                 loadYaml(filename);
             }
+            configuration.put(ACTIVE_PROFILE_PROPERTY, activeProfile);
         }
 
         // Load environment variables (higher precedence)
@@ -109,6 +117,24 @@ public class ConfigurationLoader {
         // Resolve property placeholders
         resolvePlaceholders();
     }
+
+    private String getConfigProfilesActiveByPrecedance() {
+        var defaultProfile = configuration.get(ACTIVE_PROFILE_PROPERTY);
+
+        var profile = "";
+        // TODO Load command line
+
+        // TODO Load system properties if previous is null
+
+        // TODO Load env variable if previous is null
+        profile = env.get("CONFIG_PROFILES_ACTIVE");
+
+        // TODO return default
+        if (profile != null && !profile.isBlank())
+            return profile;
+        return defaultProfile;
+    }
+
     /**
      * Injects configuration values into fields annotated with {@link Value}.
      * @param obj the object to inject configuration into
@@ -224,7 +250,7 @@ public class ConfigurationLoader {
     private InputStream getInputStream(String filename, String extension) throws IOException {
         var input = getClass().getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {
-            input = Files.newInputStream(Paths.get(filename + extension));
+                input = Files.newInputStream(Paths.get(filename + extension));
         }
         return input;
     }
@@ -250,17 +276,19 @@ public class ConfigurationLoader {
      * @throws IllegalStateException if the encryption key is not found
      */
     private String getEncryptionKey() {
-        var key = System.getenv(ENCRYPTION_KEY_PROPERTY);
-        if (key == null) {
-            key = System.getProperty(ENCRYPTION_KEY_PROPERTY);
+        var encKey = System.getenv("CONFIG_ENCRYPTION_KEY");
+        if (null != encKey) {
+            return encKey;
         }
-        if (key == null) {
-            key = configuration.get(ENCRYPTION_KEY_PROPERTY);
+
+        encKey = configuration.get(ENCRYPTION_KEY_PROPERTY);
+        if (null != encKey) {
+            return encKey;
         }
-        if (key == null) {
+        if (encKey == null) {
             throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROPERTY);
         }
-        return key;
+        return encKey;
     }
 
     /**
