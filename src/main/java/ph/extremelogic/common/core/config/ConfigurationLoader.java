@@ -9,6 +9,10 @@
 
 package ph.extremelogic.common.core.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.ElementType;
@@ -20,10 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationLoader {
     private static final Log logger = LogFactory.getLog(ConfigurationLoader.class);
@@ -49,6 +49,7 @@ public class ConfigurationLoader {
 
     /**
      * Loads properties from a .properties file.
+     *
      * @param name the name of the file to load (without extension)
      * @throws IOException if an I/O error occurs
      */
@@ -68,6 +69,7 @@ public class ConfigurationLoader {
 
     /**
      * Loads configuration from a YAML file.
+     *
      * @param name the name of the file to load (without extension)
      */
     public void loadYaml(String name) {
@@ -83,9 +85,10 @@ public class ConfigurationLoader {
 
     /**
      * Loads configuration from all supported sources (properties, YAML, environment variables).
+     *
      * @throws IOException if an I/O error occurs
      */
-    public void loadConfiguration(String []args) {
+    public void loadConfiguration(String[] args) {
         var name = DEFAULT_CONFIG_NAME;
 
         // Load default configurations
@@ -127,27 +130,40 @@ public class ConfigurationLoader {
         loadConfiguration(null);
     }
 
-    private String getConfigProfilesActiveByPrecedence(String []args) {
-        var defaultProfile = configuration.get(CONFIG_PROFILES_ACTIVE_PROP);
+    private String getConfigProfilesActiveByPrecedence(String[] args) {
+        String profile = null;
 
-        var profile = "";
-        // TODO Load command line
-
-        // TODO Load system properties if previous is null
-
-        // Load env variable if previous is null
-        profile = env.get(CONFIG_PROFILES_ACTIVE_ENV);
-
-        // TODO return default
-        if (profile != null && !profile.isBlank()) {
-            return profile;
+        // Load command line arguments (highest precedence)
+        if (args != null && args.length > 0) {
+            for (String arg : args) {
+                if (arg.startsWith("--" + CONFIG_PROFILES_ACTIVE_PROP + "=")) {
+                    profile = arg.substring(("--" + CONFIG_PROFILES_ACTIVE_PROP + "=").length());
+                    break;
+                }
+            }
         }
 
-        return defaultProfile;
+        // Load system properties if previous is null
+        if (profile == null) {
+            profile = System.getProperty(CONFIG_PROFILES_ACTIVE_PROP);
+        }
+
+        // Load env variable if previous is null
+        if (profile == null) {
+            profile = env.get(CONFIG_PROFILES_ACTIVE_ENV);
+        }
+
+        // Return default if all above are null
+        if (profile == null || profile.isBlank()) {
+            profile = configuration.get(CONFIG_PROFILES_ACTIVE_PROP);
+        }
+
+        return profile;
     }
 
     /**
      * Injects configuration values into fields annotated with {@link Value}.
+     *
      * @param obj the object to inject configuration into
      * @throws IllegalAccessException if the fields cannot be accessed
      */
@@ -168,8 +184,9 @@ public class ConfigurationLoader {
 
     /**
      * Sets the value of a field on the given object, converting the string value to the appropriate type.
+     *
      * @param field the field to set
-     * @param obj the object on which to set the field
+     * @param obj   the object on which to set the field
      * @param value the value to set
      * @throws IllegalAccessException if the field cannot be accessed
      */
@@ -194,8 +211,9 @@ public class ConfigurationLoader {
 
     /**
      * Recursively flattens a nested map and adds its entries to the configuration map.
+     *
      * @param prefix the current prefix for the keys
-     * @param map the map to flatten
+     * @param map    the map to flatten
      */
     private void flattenMap(String prefix, Map<String, Object> map) {
         for (var entry : map.entrySet()) {
@@ -224,6 +242,7 @@ public class ConfigurationLoader {
 
     /**
      * Mock environment variables for testing purposes.
+     *
      * @param envVars the mock environment variables
      */
     protected void mockEnvironmentVariables(Map<String, String> envVars) {
@@ -232,17 +251,19 @@ public class ConfigurationLoader {
 
     /**
      * Converts an environment variable key to a property key format.
+     *
      * @param envKey the environment variable key
      * @return the converted property key, or null if the key is not valid
      */
     private String convertEnvToPropertyKey(String envKey) {
-            return envKey
-                    .toLowerCase()
-                    .replace("_", ".");
+        return envKey
+                .toLowerCase()
+                .replace("_", ".");
     }
 
     /**
      * Gets a configuration property value.
+     *
      * @param key the key of the property to retrieve
      * @return the value of the property, or null if not found
      */
@@ -253,7 +274,8 @@ public class ConfigurationLoader {
     /**
      * Gets an input stream for a configuration file. Loading initially from resource
      * alse from current directory.
-     * @param filename the name of the file
+     *
+     * @param filename  the name of the file
      * @param extension the file extension
      * @return the input stream
      * @throws IOException if an I/O error occurs
@@ -261,13 +283,14 @@ public class ConfigurationLoader {
     private InputStream getInputStream(String filename, String extension) throws IOException {
         var input = getClass().getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {
-                input = Files.newInputStream(Paths.get(filename + extension));
+            input = Files.newInputStream(Paths.get(filename + extension));
         }
         return input;
     }
 
     /**
      * Decrypts the value if it's encrypted, otherwise returns the original value.
+     *
      * @param value the value to decrypt if needed
      * @return the decrypted value or the original value if not encrypted
      */
@@ -283,6 +306,7 @@ public class ConfigurationLoader {
 
     /**
      * Gets the encryption key from environment variables, system properties, or configuration.
+     *
      * @return the encryption key
      * @throws IllegalStateException if the encryption key is not found
      */
@@ -313,6 +337,7 @@ public class ConfigurationLoader {
 
     /**
      * Encrypts a value.
+     *
      * @param value the value to encrypt
      * @return the encrypted value wrapped in ENC()
      */
@@ -323,6 +348,7 @@ public class ConfigurationLoader {
 
     /**
      * Decrypts an encrypted value.
+     *
      * @param encryptedValue the encrypted value to decrypt
      * @return the decrypted value
      */
