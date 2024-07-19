@@ -1,12 +1,16 @@
 /*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distribut
-        return encKey;ed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ph.extremelogic.common.core.config;
 
 import org.apache.commons.logging.Log;
@@ -41,8 +45,8 @@ public class ConfigurationLoader {
     private String configName = DEFAULT_CONFIG_NAME;
 
     // Need this outside method because it slows down the method
-    private final Pattern ENC_PATTERN = Pattern.compile("ENC\\((.*)\\)");
-    private final Pattern PATTERN_VAR = Pattern.compile("\\$\\{(.+?)\\}");
+    private final Pattern patternEnc = Pattern.compile("ENC\\((.*)\\)");
+    private final Pattern patternVar = Pattern.compile("\\$\\{(.+?)\\}");
     /**
      * Annotation to mark fields for configuration value injection.
      */
@@ -135,7 +139,7 @@ public class ConfigurationLoader {
         resolvePlaceholders();
     }
 
-    public void loadConfiguration() throws IOException {
+    public void loadConfiguration() {
         loadConfiguration(null);
     }
 
@@ -304,7 +308,7 @@ public class ConfigurationLoader {
      * @return the decrypted value or the original value if not encrypted
      */
     private String decryptIfNeeded(String value) {
-        var matcher = ENC_PATTERN.matcher(value);
+        var matcher = patternEnc.matcher(value);
         if (matcher.find()) {
             String encryptedValue = matcher.group(1);
             return decrypt(encryptedValue);
@@ -328,10 +332,7 @@ public class ConfigurationLoader {
         if (null != encKey) {
             return encKey;
         }
-        if (encKey == null) {
-            throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROP);
-        }
-        return encKey;
+        throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROP);
     }
 
     /**
@@ -395,7 +396,7 @@ public class ConfigurationLoader {
 
     private String resolvePlaceholder(String value) {
         if (value == null) return null;
-        var matcher = PATTERN_VAR.matcher(value);
+        var matcher = patternVar.matcher(value);
         var sb = new StringBuilder();
         while (matcher.find()) {
             var key = matcher.group(1);
