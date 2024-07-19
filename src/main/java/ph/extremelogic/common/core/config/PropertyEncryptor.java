@@ -14,6 +14,7 @@
 
 package ph.extremelogic.common.core.config;
 
+import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
@@ -53,5 +54,32 @@ public class PropertyEncryptor {
         } catch (Exception e) {
             throw new RuntimeException("Error decrypting value", e);
         }
+    }
+
+    public static void main(String[] args) {
+        var scanner = new Scanner(System.in);
+
+        System.out.print("Enter a 16-character encryption key: ");
+        String encryptionKey = scanner.nextLine();
+
+        if (encryptionKey.length() != KEY_LENGTH) {
+            System.out.println("Error: Encryption key must be 16 characters long.");
+            return;
+        }
+
+        var encryptor = new PropertyEncryptor(encryptionKey);
+
+        System.out.print("Enter a value to create an encrypted equivalent for your configuration: ");
+        var valueToEncrypt = scanner.nextLine();
+
+        var encryptedValue = encryptor.encrypt(valueToEncrypt);
+        System.out.println();
+        System.out.println("Place this in your configuration.");
+        System.out.println("Encrypted Value: ENC(" + encryptedValue + ")");
+
+        var decryptedValue = encryptor.decrypt(encryptedValue);
+        System.out.println();
+        System.out.println("Below is just a verification that we can decrypt it.");
+        System.out.println("Decrypted Value: " + decryptedValue);
     }
 }
