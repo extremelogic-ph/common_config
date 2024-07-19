@@ -8,18 +8,18 @@ import javax.crypto.IllegalBlockSizeException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PropertyEncryptorTest {
+class PropertyEncryptorTest {
 
     private static final String ENCRYPTION_KEY = "1234567890123456"; // 16-byte key for AES
     private PropertyEncryptor encryptor;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         encryptor = new PropertyEncryptor(ENCRYPTION_KEY);
     }
 
     @Test
-    public void testEncryptDecrypt() {
+    void testEncryptDecrypt() {
         String originalValue = "HelloWorld";
         String encryptedValue = encryptor.encrypt(originalValue);
         String decryptedValue = encryptor.decrypt(encryptedValue);
@@ -27,14 +27,14 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptNotNull() {
+    void testEncryptNotNull() {
         String originalValue = "HelloWorld";
         String encryptedValue = encryptor.encrypt(originalValue);
         assertNotNull(encryptedValue, "Encrypted value should not be null");
     }
 
     @Test
-    public void testDecryptNotNull() {
+    void testDecryptNotNull() {
         String originalValue = "HelloWorld";
         String encryptedValue = encryptor.encrypt(originalValue);
         String decryptedValue = encryptor.decrypt(encryptedValue);
@@ -42,7 +42,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testDecryptInvalidData() {
+    void testDecryptInvalidData() {
         String invalidEncryptedValue = "InvalidData";
         Exception exception = assertThrows(RuntimeException.class, () -> {
             encryptor.decrypt(invalidEncryptedValue);
@@ -52,7 +52,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptEmptyString() {
+    void testEncryptEmptyString() {
         String originalValue = "";
         String encryptedValue = encryptor.encrypt(originalValue);
         String decryptedValue = encryptor.decrypt(encryptedValue);
@@ -60,7 +60,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptNullString() {
+    void testEncryptNullString() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
             encryptor.encrypt(null);
         });
@@ -68,7 +68,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testDecryptNullString() {
+    void testDecryptNullString() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
             encryptor.decrypt(null);
         });
@@ -76,7 +76,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptSpecialCharacters() {
+    void testEncryptSpecialCharacters() {
         String originalValue = "!@#$%^&*()_+";
         String encryptedValue = encryptor.encrypt(originalValue);
         String decryptedValue = encryptor.decrypt(encryptedValue);
@@ -84,7 +84,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptLongString() {
+    void testEncryptLongString() {
         String originalValue = "A".repeat(1000);
         String encryptedValue = encryptor.encrypt(originalValue);
         String decryptedValue = encryptor.decrypt(encryptedValue);
@@ -92,7 +92,7 @@ public class PropertyEncryptorTest {
     }
 
     @Test
-    public void testEncryptKeyLength() {
+    void testEncryptKeyLength() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
             new PropertyEncryptor("short");
         });
