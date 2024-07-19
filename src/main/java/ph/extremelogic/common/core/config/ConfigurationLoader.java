@@ -24,15 +24,14 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationLoader {
     public static final String DEFAULT_CONFIG_NAME = "config";
-    public static final String ENCRYPTION_KEY_PROPERTY = "app.encryption.key";
-    public static final String ACTIVE_PROFILE_PROPERTY = "app.profiles.active";
+    public static final String ENCRYPTION_KEY_PROPERTY = DEFAULT_CONFIG_NAME + ".encryption.key";
+    public static final String ACTIVE_PROFILE_PROPERTY = DEFAULT_CONFIG_NAME + ".profiles.active";
 
     private final Map<String, String> configuration = new HashMap<>();
     private Map<String, String> env = System.getenv();
@@ -54,11 +53,11 @@ public class ConfigurationLoader {
      * @throws IOException if an I/O error occurs
      */
     public void loadProperties(String filename) throws IOException {
-        Properties properties = new Properties();
-        try (InputStream input = getInputStream(filename, ".properties")) {
+        var properties = new Properties();
+        try (var input = getInputStream(filename, ".properties")) {
             properties.load(input);
-            for (String key : properties.stringPropertyNames()) {
-                String value = properties.getProperty(key);
+            for (var key : properties.stringPropertyNames()) {
+                var value = properties.getProperty(key);
                 configuration.put(key, decryptIfNeeded(value));
             }
         }
@@ -71,7 +70,7 @@ public class ConfigurationLoader {
      */
     public void loadYaml(String filename) throws IOException {
         Yaml yaml = new Yaml();
-        try (InputStream input = getInputStream(filename, ".yml")) {
+        try (var input = getInputStream(filename, ".yml")) {
             Map<String, Object> yamlMap = yaml.load(input);
             flattenMap("", yamlMap);
         }
@@ -92,8 +91,9 @@ public class ConfigurationLoader {
         if (profilesStr != null) {
             activeProfiles = Arrays.asList(profilesStr.split(","));
             for (String profile : activeProfiles) {
-                loadProperties(name + "-" + profile.trim());
-                loadYaml(name + "-" + profile.trim());
+                var filename = name + "-" + profile.trim();
+                loadProperties(filename);
+                loadYaml(filename);
             }
         }
 
@@ -116,11 +116,11 @@ public class ConfigurationLoader {
      */
     public void injectConfig(Object obj) throws IllegalAccessException {
         Class<?> clazz = obj.getClass();
-        for (Field field : clazz.getDeclaredFields()) {
+        for (var field : clazz.getDeclaredFields()) {
             Value valueAnnotation = field.getAnnotation(Value.class);
             if (valueAnnotation != null) {
-                String key = valueAnnotation.value().replace("${", "").replace("}", "");
-                String value = getProperty(key);
+                var key = valueAnnotation.value().replace("${", "").replace("}", "");
+                var value = getProperty(key);
                 if (value != null) {
                     field.setAccessible(true);
                     setFieldValue(field, obj, value);
@@ -161,8 +161,8 @@ public class ConfigurationLoader {
      * @param map the map to flatten
      */
     private void flattenMap(String prefix, Map<String, Object> map) {
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+        for (var entry : map.entrySet()) {
+            var key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
             if (entry.getValue() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> nestedMap = (Map<String, Object>) entry.getValue();
@@ -177,8 +177,8 @@ public class ConfigurationLoader {
      * Loads environment variable to override configuration.
      */
     public void loadEnvironmentVariables() {
-        for (Map.Entry<String, String> entry : env.entrySet()) {
-            String key = convertEnvToPropertyKey(entry.getKey());
+        for (var entry : env.entrySet()) {
+            var key = convertEnvToPropertyKey(entry.getKey());
             if (key != null) {
                 configuration.put(key, decryptIfNeeded(entry.getValue()));
             }
@@ -225,7 +225,7 @@ public class ConfigurationLoader {
      * @throws IOException if an I/O error occurs
      */
     private InputStream getInputStream(String filename, String extension) throws IOException {
-        InputStream input = getClass().getClassLoader().getResourceAsStream(filename + extension);
+        var input = getClass().getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {
             input = Files.newInputStream(Paths.get(filename + extension));
         }
@@ -238,8 +238,8 @@ public class ConfigurationLoader {
      * @return the decrypted value or the original value if not encrypted
      */
     private String decryptIfNeeded(String value) {
-        Pattern pattern = Pattern.compile("ENC\\((.*)\\)");
-        Matcher matcher = pattern.matcher(value);
+        var pattern = Pattern.compile("ENC\\((.*)\\)");
+        var matcher = pattern.matcher(value);
         if (matcher.find()) {
             String encryptedValue = matcher.group(1);
             return decrypt(encryptedValue);
@@ -253,7 +253,7 @@ public class ConfigurationLoader {
      * @throws IllegalStateException if the encryption key is not found
      */
     private String getEncryptionKey() {
-        String key = System.getenv(ENCRYPTION_KEY_PROPERTY);
+        var key = System.getenv(ENCRYPTION_KEY_PROPERTY);
         if (key == null) {
             key = System.getProperty(ENCRYPTION_KEY_PROPERTY);
         }
@@ -300,14 +300,14 @@ public class ConfigurationLoader {
     }
 
     private void loadSystemProperties() {
-        Properties sysProps = System.getProperties();
-        for (String key : sysProps.stringPropertyNames()) {
+        var sysProps = System.getProperties();
+        for (var key : sysProps.stringPropertyNames()) {
             configuration.put(key, decryptIfNeeded(sysProps.getProperty(key)));
         }
     }
 
     private void loadCommandLineArguments(String[] args) {
-        for (String arg : args) {
+        for (var arg : args) {
             if (arg.startsWith("--")) {
                 String[] keyValue = arg.substring(2).split("=", 2);
                 if (keyValue.length == 2) {
@@ -318,19 +318,19 @@ public class ConfigurationLoader {
     }
 
     private void resolvePlaceholders() {
-        for (Map.Entry<String, String> entry : configuration.entrySet()) {
+        for (var entry : configuration.entrySet()) {
             entry.setValue(resolvePlaceholder(entry.getValue()));
         }
     }
 
     private String resolvePlaceholder(String value) {
         if (value == null) return null;
-        Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
-        Matcher matcher = pattern.matcher(value);
-        StringBuffer sb = new StringBuffer();
+        var pattern = Pattern.compile("\\$\\{(.+?)\\}");
+        var matcher = pattern.matcher(value);
+        var sb = new StringBuffer();
         while (matcher.find()) {
-            String key = matcher.group(1);
-            String replacement = getProperty(key);
+            var key = matcher.group(1);
+            var replacement = getProperty(key);
             matcher.appendReplacement(sb, replacement != null ? replacement : matcher.group());
         }
         matcher.appendTail(sb);
