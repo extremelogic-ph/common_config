@@ -22,10 +22,14 @@ public class PropertyEncryptor {
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/ECB/PKCS5Padding";
+    private static final int KEY_LENGTH = 16;
 
     private final SecretKeySpec secretKey;
 
     public PropertyEncryptor(String encryptionKey) {
+        if (encryptionKey == null || encryptionKey.length() != KEY_LENGTH) {
+            throw new IllegalArgumentException("Encryption key must be 16 characters long");
+        }
         this.secretKey = new SecretKeySpec(encryptionKey.getBytes(), ALGORITHM);
     }
 
