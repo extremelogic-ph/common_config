@@ -29,7 +29,8 @@ public class ConfigurationLoader {
     private static final Log logger = LogFactory.getLog(ConfigurationLoader.class);
 
     public static final String DEFAULT_CONFIG_NAME = "config";
-    public static final String ENCRYPTION_KEY_PROPERTY = DEFAULT_CONFIG_NAME + ".encryption.key";
+    public static final String ENCRYPTION_KEY_PROP = DEFAULT_CONFIG_NAME + ".encryption.key";
+    public static final String ENCRYPTION_KEY_ENV = DEFAULT_CONFIG_NAME.toUpperCase() + "_ENCRYPTION_KEY";
     public static final String CONFIG_PROFILES_ACTIVE_PROP = DEFAULT_CONFIG_NAME + ".profiles.active";
     public static final String CONFIG_PROFILES_ACTIVE_ENV = DEFAULT_CONFIG_NAME.toUpperCase() + "_PROFILES_ACTIVE";
 
@@ -37,7 +38,11 @@ public class ConfigurationLoader {
     private Map<String, String> env = System.getenv();
     private PropertyEncryptor encryptor;
     private List<String> activeProfiles = new ArrayList<>();
+    private String configName = DEFAULT_CONFIG_NAME;
 
+    // Need this outside method because it slows down the method
+    private final Pattern ENC_PATTERN = Pattern.compile("ENC\\((.*)\\)");
+    private final Pattern PATTERN_VAR = Pattern.compile("\\$\\{(.+?)\\}");
     /**
      * Annotation to mark fields for configuration value injection.
      */
@@ -51,7 +56,6 @@ public class ConfigurationLoader {
      * Loads properties from a .properties file.
      *
      * @param name the name of the file to load (without extension)
-     * @throws IOException if an I/O error occurs
      */
     public void loadProperties(String name) {
         var properties = new Properties();
@@ -64,6 +68,10 @@ public class ConfigurationLoader {
         } catch (IOException e) {
             logger.warn("Unable to load " + name + ".properties " + e.getLocalizedMessage());
         }
+    }
+
+    public void loadProperties() {
+        loadProperties(configName);
     }
 
 
@@ -82,14 +90,15 @@ public class ConfigurationLoader {
         }
     }
 
+    public void loadYaml() {
+        loadYaml(configName);
+    }
 
     /**
      * Loads configuration from all supported sources (properties, YAML, environment variables).
-     *
-     * @throws IOException if an I/O error occurs
      */
     public void loadConfiguration(String[] args) {
-        var name = DEFAULT_CONFIG_NAME;
+        var name = configName;
 
         // Load default configurations
         loadProperties(name);
@@ -100,7 +109,7 @@ public class ConfigurationLoader {
         // Load active profiles
         if (activeProfile != null) {
             activeProfiles = Arrays.asList(activeProfile.split(","));
-            for (String profile : activeProfiles) {
+            for (var profile : activeProfiles) {
                 var filename = name + "-" + profile.trim();
 
                 loadProperties(filename);
@@ -295,8 +304,7 @@ public class ConfigurationLoader {
      * @return the decrypted value or the original value if not encrypted
      */
     private String decryptIfNeeded(String value) {
-        var pattern = Pattern.compile("ENC\\((.*)\\)");
-        var matcher = pattern.matcher(value);
+        var matcher = ENC_PATTERN.matcher(value);
         if (matcher.find()) {
             String encryptedValue = matcher.group(1);
             return decrypt(encryptedValue);
@@ -311,17 +319,17 @@ public class ConfigurationLoader {
      * @throws IllegalStateException if the encryption key is not found
      */
     private String getEncryptionKey() {
-        var encKey = System.getenv("CONFIG_ENCRYPTION_KEY");
+        var encKey = System.getenv(ENCRYPTION_KEY_ENV);
         if (null != encKey) {
             return encKey;
         }
 
-        encKey = configuration.get(ENCRYPTION_KEY_PROPERTY);
+        encKey = configuration.get(ENCRYPTION_KEY_PROP);
         if (null != encKey) {
             return encKey;
         }
         if (encKey == null) {
-            throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROPERTY);
+            throw new IllegalStateException("Encryption key not found. Please set " + ENCRYPTION_KEY_PROP);
         }
         return encKey;
     }
@@ -387,9 +395,8 @@ public class ConfigurationLoader {
 
     private String resolvePlaceholder(String value) {
         if (value == null) return null;
-        var pattern = Pattern.compile("\\$\\{(.+?)\\}");
-        var matcher = pattern.matcher(value);
-        var sb = new StringBuffer();
+        var matcher = PATTERN_VAR.matcher(value);
+        var sb = new StringBuilder();
         while (matcher.find()) {
             var key = matcher.group(1);
             var replacement = getProperty(key);
@@ -397,5 +404,13 @@ public class ConfigurationLoader {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    public String getConfigName() {
+        return configName;
+    }
+
+    public void setConfigName(String configName) {
+        this.configName = configName;
     }
 }

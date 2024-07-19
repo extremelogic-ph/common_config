@@ -53,7 +53,7 @@ class ConfigurationLoaderTest {
         loader = new ConfigurationLoader();
 
         // Set the encryption key as a system property for testing
-        System.setProperty(ConfigurationLoader.ENCRYPTION_KEY_PROPERTY, TEST_ENCRYPTION_KEY);
+        System.setProperty(ConfigurationLoader.ENCRYPTION_KEY_PROP, TEST_ENCRYPTION_KEY);
     }
 
     @Test
