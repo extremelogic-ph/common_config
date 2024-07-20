@@ -59,11 +59,11 @@ class DefaultPropertyEncryptorTest {
     @Test
     void testDecryptInvalidData() {
         String invalidEncryptedValue = "InvalidData";
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        Exception exception = assertThrows(ConfigurationException.class, () -> {
             encryptor.decrypt(invalidEncryptedValue);
         });
-        assertTrue(exception.getCause() instanceof IllegalBlockSizeException || exception.getCause() instanceof BadPaddingException,
-                "Decrypting invalid data should throw IllegalBlockSizeException or BadPaddingException");
+        assertTrue(exception instanceof ConfigurationException,
+                "Decrypting invalid data should throw ConfigurationException");
     }
 
     @Test
