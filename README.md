@@ -125,7 +125,7 @@ or
 java -Dconfig.encryption.key=your-16-char-secret-key -jar your-app.jar
 ```
 
-2. Encrypt sensitive values using the PropertyEncryptor utility:
+2. Execute the main in the class DefaultPropertyEncryptor:
 
 ```
 public static void main(String[] args) {
@@ -156,7 +156,24 @@ public static void main(String[] args) {
 }
 ```
 
-3. Use encrypted values in your configuration files:
+or
+
+4. Use the jar to encrypt sensitive values:
+
+You can run the JAR to generate the encrypted value for your configuration.
+
+```
+java -jar extremelogic-common-config-0.0.1.jar
+```
+
+When you run the JAR, it will prompt you to enter a 16-character encryption key and the value you want to encrypt. The encrypted value will be displayed in the following format:
+
+```
+Encrypted Value: ENC(encrypted-value-here)
+```
+
+
+5. Use encrypted values in your configuration files:
 
 ```properties
 db.password=ENC(encrypted-value-here)
