@@ -14,10 +14,10 @@
 
 package ph.extremelogic.common.core.config.encrypt;
 
-import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import java.util.Scanner;
 
 public class DefaultPropertyEncryptor implements PropertyEncryptor {
 

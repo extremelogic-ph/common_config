@@ -13,9 +13,6 @@
  */
 package ph.extremelogic.common.core.config;
 
-import static ph.extremelogic.common.core.config.util.FileUtil.getInputStream;
-import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setFieldValue;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -29,6 +26,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static ph.extremelogic.common.core.config.util.FileUtil.getInputStream;
+import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setFieldValue;
 
 public class ConfigurationLoader {
     private static final Log logger = LogFactory.getLog(ConfigurationLoader.class);
