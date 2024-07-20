@@ -128,7 +128,7 @@ java -Dconfig.encryption.key=your-16-char-secret-key -jar your-app.jar
 
 2. Encrypt sensitive values using the PropertyEncryptor utility:
 
-```java
+```
 public static void main(String[] args) {
     var scanner = new Scanner(System.in);
 

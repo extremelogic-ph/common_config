@@ -104,6 +104,8 @@ public class ConfigurationLoader {
     public void loadConfiguration(String[] args) {
         var name = configName;
 
+        setEncryptionKeyByPrecedence(args);
+
         // Load default configurations
         loadProperties(name);
         loadYaml(name);
@@ -172,6 +174,35 @@ public class ConfigurationLoader {
         }
 
         return profile;
+    }
+
+
+    private void setEncryptionKeyByPrecedence(String[] args) {
+        String encryptionKey = null;
+
+        // Load command line arguments (highest precedence)
+        if (args != null && args.length > 0) {
+            for (String arg : args) {
+                if (arg.startsWith("--" + ENCRYPTION_KEY_PROP + "=")) {
+                    encryptionKey = arg.substring(("--" + ENCRYPTION_KEY_PROP + "=").length());
+                    break;
+                }
+            }
+        }
+
+        // Load system properties if previous is null
+        if (encryptionKey == null) {
+            encryptionKey = System.getProperty(ENCRYPTION_KEY_PROP);
+        }
+
+        // Load env variable if previous is null
+        if (encryptionKey == null) {
+            encryptionKey = env.get(ENCRYPTION_KEY_ENV);
+        }
+
+        if (null != encryptionKey) {
+            configuration.put(ENCRYPTION_KEY_PROP, encryptionKey);
+        }
     }
 
     /**

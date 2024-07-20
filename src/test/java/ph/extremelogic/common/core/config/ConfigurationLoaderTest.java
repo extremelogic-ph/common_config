@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import ph.extremelogic.common.core.config.sample.AppConfig;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,9 +30,6 @@ class ConfigurationLoaderTest {
     private static final String TEST_APP_NAME_PROP = "My Application Prop";
     private static final String TEST_APP_NAME_YML = "My Application Yml";
     private static final String TEST_APP_NAME_ENV = "My Application Env";
-    private static final int TEST_APP_VERSION_YML = 1;
-    private static final boolean TEST_APP_ACTIVE_YML = true;
-    private static final long TEST_APP_TIMEOUT_YML = 3000L;
     private static final double DELTA = 1e-6;
 
     private static final String MOCK_ENV_KEY = "APP_NAME";
@@ -54,22 +50,24 @@ class ConfigurationLoaderTest {
 
         // Set the encryption key as a system property for testing
         System.setProperty(ConfigurationLoader.ENCRYPTION_KEY_PROP, TEST_ENCRYPTION_KEY);
+
+        loader.loadConfiguration();
     }
 
     @Test
-    void testBasicPropertyLoading() throws IOException {
+    void testBasicPropertyLoading() {
         loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
     }
 
     @Test
-    void testBasicYamlLoading() throws IOException {
+    void testBasicYamlLoading() {
         loader.loadConfiguration();
         assertEquals(TEST_APP_NAME_YML, loader.getProperty(APP_NAME));
     }
 
     @Test
-    void testPropertyOverriding() throws IOException {
+    void testPropertyOverriding() {
         loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
 
@@ -84,7 +82,7 @@ class ConfigurationLoaderTest {
     }
 
     @Test
-    void testEnvironmentVariableOverriding() throws IOException {
+    void testEnvironmentVariableOverriding() {
         // Set environment variable
 
         Map<String, String> envMap = new HashMap<>();
@@ -99,7 +97,8 @@ class ConfigurationLoaderTest {
     }
 
     @Test
-    void testValueAnnotation() throws IOException, IllegalAccessException {
+    void testValueAnnotation() throws IllegalAccessException {
+
         loader.loadConfiguration();
 
         AppConfig appConfig = new AppConfig();
@@ -115,7 +114,7 @@ class ConfigurationLoaderTest {
     }
 
     @Test
-    void testEncrypt() throws IOException, IllegalAccessException {
+    void testEncrypt() throws IllegalAccessException {
         String originalPassword = "secretPassword";
         String encryptedPassword = loader.encrypt(originalPassword);
 
