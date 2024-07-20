@@ -14,6 +14,8 @@
 
 package ph.extremelogic.common.core.config.util;
 
+import ph.extremelogic.common.core.config.ConfigurationException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -35,12 +37,16 @@ public class FileUtil {
      * @param filename  The name of the file (without extension).
      * @param extension The file extension (e.g., ".txt", ".properties").
      * @return An InputStream for reading the file.
-     * @throws IOException If an I/O error occurs while accessing the file.
+     * @throws ConfigurationException If an I/O error occurs while accessing the file.
      */
-    public static InputStream getInputStream(String filename, String extension) throws IOException {
+    public static InputStream getInputStream(String filename, String extension) throws ConfigurationException {
         InputStream input = FileUtil.class.getClassLoader().getResourceAsStream(filename + extension);
         if (input == null) {
-            input = Files.newInputStream(Paths.get(filename + extension));
+            try {
+                input = Files.newInputStream(Paths.get(filename + extension));
+            } catch (IOException e) {
+                throw new ConfigurationException(e);
+            }
         }
         return input;
     }
