@@ -14,11 +14,17 @@
 
 package ph.extremelogic.common.core.config;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.io.TempDir;
 import ph.extremelogic.common.core.config.sample.AppConfig;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +45,6 @@ class ConfigurationLoaderTest {
 
     private static final String TEST_ENCRYPTION_KEY = "your16charEncKey";
 
-
     private ConfigurationLoader loader;
     @TempDir
     Path tempDir;
@@ -51,13 +56,31 @@ class ConfigurationLoaderTest {
         // Set the encryption key as a system property for testing
         System.setProperty(ConfigurationLoader.ENCRYPTION_KEY_PROP, TEST_ENCRYPTION_KEY);
 
-        loader.loadConfiguration();
+        loader.loadConfiguration(false);
+    }
+
+    @AfterEach
+    void tearDown() {
     }
 
     @Test
     void testBasicPropertyLoading() {
         loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
+    }
+
+    @Test
+    void testMissingConfigProfilesActive() {
+        System.setProperty(ConfigurationLoader.CONFIG_PROFILES_ACTIVE_PROP, "missing");
+
+        String missingFileName = "config-missing";
+
+        Exception exception = assertThrows(ConfigurationException.class, () -> {
+            loader.loadConfiguration(true);
+        });
+        var msg = exception.getMessage();
+        assertTrue(msg.contains("Unable to load " + missingFileName + ".properties"));
+        System.clearProperty(ConfigurationLoader.CONFIG_PROFILES_ACTIVE_PROP);
     }
 
     @Test

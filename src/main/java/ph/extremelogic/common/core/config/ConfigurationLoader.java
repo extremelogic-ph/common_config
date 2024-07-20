@@ -50,6 +50,10 @@ public class ConfigurationLoader {
     // Need this outside method because it slows down the method
     private final Pattern patternEnc = Pattern.compile("ENC\\((.*)\\)");
     private final Pattern patternVar = Pattern.compile("\\$\\{(.+?)\\}");
+
+
+    private boolean throwException = true;
+
     /**
      * Annotation to mark fields for configuration value injection.
      */
@@ -72,8 +76,12 @@ public class ConfigurationLoader {
                 var value = properties.getProperty(key);
                 configuration.put(key, decryptIfNeeded(value));
             }
-        } catch (IOException e) {
-            logger.warn("Unable to load " + name + ".properties " + e.getLocalizedMessage());
+        } catch (ConfigurationException | IOException e) {
+            var msg = "Unable to load " + name + ".properties " + e.getLocalizedMessage();
+            logger.warn(msg);
+            if (throwException) {
+                throw new ConfigurationException(msg, e);
+            }
         }
     }
 
@@ -92,8 +100,12 @@ public class ConfigurationLoader {
         try (var input = getInputStream(name, ".yml")) {
             Map<String, Object> yamlMap = yaml.load(input);
             flattenMap("", yamlMap);
-        } catch (IOException e) {
-            logger.warn("Unable to load " + name + ".yml " + e.getLocalizedMessage());
+        } catch (ConfigurationException | IOException e) {
+            var msg = "Unable to load " + name + ".yml " + e.getLocalizedMessage();
+            logger.warn(msg);
+            if (throwException) {
+                throw new ConfigurationException(msg, e);
+            }
         }
     }
 
@@ -104,8 +116,10 @@ public class ConfigurationLoader {
     /**
      * Loads configuration from all supported sources (properties, YAML, environment variables).
      */
-    public void loadConfiguration(String[] args) {
+    public void loadConfiguration(String[] args, boolean throwException) {
         var name = configName;
+
+        this.throwException = throwException;
 
         setEncryptionKeyByPrecedence(args);
 
@@ -145,7 +159,10 @@ public class ConfigurationLoader {
     }
 
     public void loadConfiguration() {
-        loadConfiguration(null);
+        loadConfiguration(null, false);
+    }
+    public void loadConfiguration(boolean throwException) {
+        loadConfiguration(null, throwException);
     }
 
     private String getConfigProfilesActiveByPrecedence(String[] args) {
@@ -424,5 +441,9 @@ public class ConfigurationLoader {
 
     public void setPropertyEncryptor(PropertyEncryptor propertyEncryptor) {
         this.propertyEncryptor = propertyEncryptor;
+    }
+
+    public void setThrowException(boolean throwException) {
+        this.throwException = throwException;
     }
 }

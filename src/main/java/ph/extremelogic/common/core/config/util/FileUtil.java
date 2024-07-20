@@ -44,7 +44,7 @@ public class FileUtil {
         if (input == null) {
             try {
                 input = Files.newInputStream(Paths.get(filename + extension));
-            } catch (IOException e) {
+            } catch (ConfigurationException | IOException e) {
                 throw new ConfigurationException(e);
             }
         }
