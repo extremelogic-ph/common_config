@@ -19,6 +19,8 @@ import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setF
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
+import ph.extremelogic.common.core.config.encrypt.DefaultPropertyEncryptor;
+import ph.extremelogic.common.core.config.encrypt.PropertyEncryptor;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -39,7 +41,9 @@ public class ConfigurationLoader {
 
     private final Map<String, String> configuration = new HashMap<>();
     private Map<String, String> env = System.getenv();
-    private PropertyEncryptor encryptor;
+
+
+    private PropertyEncryptor propertyEncryptor;
     private List<String> activeProfiles = new ArrayList<>();
     private String configName = DEFAULT_CONFIG_NAME;
 
@@ -324,8 +328,8 @@ public class ConfigurationLoader {
      * Initializes the PropertyEncryptor with the encryption key.
      */
     private void initializeEncryptor() {
-        if (encryptor == null) {
-            encryptor = new PropertyEncryptor(getEncryptionKey());
+        if (propertyEncryptor == null) {
+            propertyEncryptor = new DefaultPropertyEncryptor(getEncryptionKey());
         }
     }
 
@@ -337,7 +341,7 @@ public class ConfigurationLoader {
      */
     public String encrypt(String value) {
         initializeEncryptor();
-        return "ENC(" + encryptor.encrypt(value) + ")";
+        return "ENC(" + propertyEncryptor.encrypt(value) + ")";
     }
 
     /**
@@ -348,7 +352,7 @@ public class ConfigurationLoader {
      */
     private String decrypt(String encryptedValue) {
         initializeEncryptor();
-        return encryptor.decrypt(encryptedValue);
+        return propertyEncryptor.decrypt(encryptedValue);
     }
 
     public List<String> getActiveProfiles() {
@@ -398,5 +402,9 @@ public class ConfigurationLoader {
 
     public void setConfigName(String configName) {
         this.configName = configName;
+    }
+
+    public void setPropertyEncryptor(PropertyEncryptor propertyEncryptor) {
+        this.propertyEncryptor = propertyEncryptor;
     }
 }

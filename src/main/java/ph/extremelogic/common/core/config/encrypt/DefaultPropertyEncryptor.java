@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package ph.extremelogic.common.core.config;
+package ph.extremelogic.common.core.config.encrypt;
 
 import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
-public class PropertyEncryptor {
+public class DefaultPropertyEncryptor implements PropertyEncryptor {
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/ECB/PKCS5Padding";
@@ -27,13 +27,14 @@ public class PropertyEncryptor {
 
     private final SecretKeySpec secretKey;
 
-    public PropertyEncryptor(String encryptionKey) {
+    public DefaultPropertyEncryptor(String encryptionKey) {
         if (encryptionKey == null || encryptionKey.length() != KEY_LENGTH) {
             throw new IllegalArgumentException("Encryption key must be 16 characters long");
         }
         this.secretKey = new SecretKeySpec(encryptionKey.getBytes(), ALGORITHM);
     }
 
+    @Override
     public String encrypt(String value) {
         try {
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
@@ -45,6 +46,7 @@ public class PropertyEncryptor {
         }
     }
 
+    @Override
     public String decrypt(String encryptedValue) {
         try {
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
@@ -67,7 +69,7 @@ public class PropertyEncryptor {
             return;
         }
 
-        var encryptor = new PropertyEncryptor(encryptionKey);
+        var encryptor = new DefaultPropertyEncryptor(encryptionKey);
 
         System.out.print("Enter a value to create an encrypted equivalent for your configuration: ");
         var valueToEncrypt = scanner.nextLine();

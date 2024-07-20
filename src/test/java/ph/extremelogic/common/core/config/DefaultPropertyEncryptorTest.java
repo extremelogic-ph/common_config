@@ -2,20 +2,21 @@ package ph.extremelogic.common.core.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ph.extremelogic.common.core.config.encrypt.DefaultPropertyEncryptor;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PropertyEncryptorTest {
+class DefaultPropertyEncryptorTest {
 
     private static final String ENCRYPTION_KEY = "1234567890123456"; // 16-byte key for AES
-    private PropertyEncryptor encryptor;
+    private DefaultPropertyEncryptor encryptor;
 
     @BeforeEach
     void setUp() {
-        encryptor = new PropertyEncryptor(ENCRYPTION_KEY);
+        encryptor = new DefaultPropertyEncryptor(ENCRYPTION_KEY);
     }
 
     @Test
@@ -94,7 +95,7 @@ class PropertyEncryptorTest {
     @Test
     void testEncryptKeyLength() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            new PropertyEncryptor("short");
+            new DefaultPropertyEncryptor("short");
         });
         assertNotNull(exception, "Creating PropertyEncryptor with short key should throw RuntimeException");
     }
