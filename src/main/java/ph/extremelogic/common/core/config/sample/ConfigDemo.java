@@ -38,8 +38,6 @@ public class ConfigDemo {
             loader.injectConfig(appConfig);
 
             System.out.println("App name: " + appConfig.getAppName());
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
