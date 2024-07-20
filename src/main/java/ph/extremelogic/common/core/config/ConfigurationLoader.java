@@ -207,6 +207,14 @@ public class ConfigurationLoader {
         }
     }
 
+    private String getConfigValue(String propertyKey, String envKey, String defaultValue) {
+        String value = configuration.get(propertyKey);
+        if (value == null || value.isEmpty()) {
+            value = env.get(envKey);
+        }
+        return (value != null && !value.isEmpty()) ? value : defaultValue;
+    }
+
     /**
      * Injects configuration values into fields annotated with {@link Value}.
      *
@@ -218,11 +226,21 @@ public class ConfigurationLoader {
         for (var field : clazz.getDeclaredFields()) {
             Value valueAnnotation = field.getAnnotation(Value.class);
             if (valueAnnotation != null) {
-                var key = valueAnnotation.value().replace("${", "").replace("}", "");
-                var value = getProperty(key);
-                if (value != null) {
+                var propertyWithDefaultValue = valueAnnotation.value();
+                var propertyTmp = propertyWithDefaultValue.replace("${", "").replace("}", "").trim();
+                var parts = propertyTmp.split(":", 2);
+                var propertyKey = parts[0];
+                var defaultValue = parts.length > 1 ? parts[1] : null;
+                var value = getConfigValue(propertyKey, propertyKey.toUpperCase().replace('.', '_'), defaultValue);
+
+                if (value == null && defaultValue == null) {
+                    continue;
+                }
+                try {
                     field.setAccessible(true);
                     setFieldValue(field, obj, value);
+                } catch (Exception e) {
+                    logger.error("Failed to set field value: " + field.getName(), e);
                 }
             }
         }

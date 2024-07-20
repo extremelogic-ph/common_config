@@ -14,6 +14,7 @@ ConfigurationLoader is a flexible and powerful configuration management library 
 - Support for configuration profiles
 - Hierarchical configuration with dot notation
 - Placeholder resolution in configuration values
+- Support for default values when using annotation
 - Encryption and decryption of sensitive configuration values
 - Annotation-based injection of configuration values
 
@@ -169,7 +170,7 @@ The ConfigurationLoader will automatically decrypt these values when loading the
 
 - The encryption key must be exactly 16 characters long.
 - The library uses AES encryption in ECB mode, which may not be suitable for all security requirements.
-- Placeholder resolution is currently limited to simple ${key} syntax and does not support default values or nested placeholders.
+- Placeholder resolution is currently limited to simple ${key} syntax and does not support nested placeholders.
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.

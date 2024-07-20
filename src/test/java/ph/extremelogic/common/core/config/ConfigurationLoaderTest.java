@@ -114,6 +114,19 @@ class ConfigurationLoaderTest {
     }
 
     @Test
+    public void testDefaultValues() throws IllegalAccessException {
+        AppConfig appConfig = new AppConfig();
+        ConfigurationLoader loader = new ConfigurationLoader();
+        loader.injectConfig(appConfig);
+
+        assertEquals("MyApp", appConfig.getDefaultName());
+        assertEquals(1, appConfig.getDefaultVersion());
+        assertFalse(appConfig.isDefaultDebug());
+        assertEquals(3000L, appConfig.getDefaultTimeout());
+        assertEquals(50.0f, appConfig.getDefaultFrequency());
+    }
+
+    @Test
     void testEncrypt() throws IllegalAccessException {
         String originalPassword = "secretPassword";
         String encryptedPassword = loader.encrypt(originalPassword);

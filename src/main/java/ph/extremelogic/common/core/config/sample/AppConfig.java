@@ -49,6 +49,24 @@ public class AppConfig {
     @ConfigurationLoader.Value("${app.frequency}")
     private float frequency;
 
+    @ConfigurationLoader.Value("${app.password}")
+    private String password;
+
+    @ConfigurationLoader.Value("${default.name:MyApp}")
+    private String defaultName;
+
+    @ConfigurationLoader.Value("${default.version:1}")
+    private int defaultVersion;
+
+    @ConfigurationLoader.Value("${default.debug:false}")
+    private boolean defaultDebug;
+
+    @ConfigurationLoader.Value("${default.timeout:3000}")
+    private long defaultTimeout;
+
+    @ConfigurationLoader.Value("${default.frequency:50.0}")
+    private float defaultFrequency;
+
     public String getPassword() {
         return password;
     }
@@ -56,9 +74,6 @@ public class AppConfig {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    @ConfigurationLoader.Value("${app.password}")
-    private String password;
 
     public String getAppName() {
         return appName;
@@ -68,13 +83,45 @@ public class AppConfig {
         this.appName = appName;
     }
 
-   // public int getAppVersion() {
-   //     return appVersion;
-    //}
+    public String getDefaultName() {
+        return defaultName;
+    }
 
-    //public void setAppVersion(int appVersion) {
-    //    this.appVersion = appVersion;
-    //}
+    public void setDefaultName(String defaultName) {
+        this.defaultName = defaultName;
+    }
+
+    public int getDefaultVersion() {
+        return defaultVersion;
+    }
+
+    public void setDefaultVersion(int defaultVersion) {
+        this.defaultVersion = defaultVersion;
+    }
+
+    public boolean isDefaultDebug() {
+        return defaultDebug;
+    }
+
+    public void setDefaultDebug(boolean defaultDebug) {
+        this.defaultDebug = defaultDebug;
+    }
+
+    public long getDefaultTimeout() {
+        return defaultTimeout;
+    }
+
+    public void setDefaultTimeout(long defaultTimeout) {
+        this.defaultTimeout = defaultTimeout;
+    }
+
+    public float getDefaultFrequency() {
+        return defaultFrequency;
+    }
+
+    public void setDefaultFrequency(float defaultFrequency) {
+        this.defaultFrequency = defaultFrequency;
+    }
 
     public boolean isAppDebug() {
         return appDebug;
