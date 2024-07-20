@@ -13,6 +13,8 @@
  */
 package ph.extremelogic.common.core.config;
 
+import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setFieldValue;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -23,7 +25,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -226,32 +227,7 @@ public class ConfigurationLoader {
         }
     }
 
-    /**
-     * Sets the value of a field on the given object, converting the string value to the appropriate type.
-     *
-     * @param field the field to set
-     * @param obj   the object on which to set the field
-     * @param value the value to set
-     * @throws IllegalAccessException if the field cannot be accessed
-     */
-    private void setFieldValue(Field field, Object obj, String value) throws IllegalAccessException {
-        Class<?> fieldType = field.getType();
-        if (fieldType == String.class) {
-            field.set(obj, value);
-        } else if (fieldType == int.class || fieldType == Integer.class) {
-            field.set(obj, Integer.parseInt(value));
-        } else if (fieldType == long.class || fieldType == Long.class) {
-            field.set(obj, Long.parseLong(value));
-        } else if (fieldType == float.class || fieldType == Float.class) {
-            field.set(obj, Float.parseFloat(value));
-        } else if (fieldType == double.class || fieldType == Double.class) {
-            field.set(obj, Double.parseDouble(value));
-        } else if (fieldType == boolean.class || fieldType == Boolean.class) {
-            field.set(obj, Boolean.parseBoolean(value));
-        } else {
-            throw new IllegalArgumentException("Unsupported field type: " + fieldType);
-        }
-    }
+
 
     /**
      * Recursively flattens a nested map and adds its entries to the configuration map.
