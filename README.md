@@ -169,7 +169,6 @@ The ConfigurationLoader will automatically decrypt these values when loading the
 ## Limitations
 
 - The encryption key must be exactly 16 characters long.
-- The library uses AES encryption in ECB mode, which may not be suitable for all security requirements.
 - Placeholder resolution is currently limited to simple ${key} syntax and does not support nested placeholders.
 
 ## Contributing
