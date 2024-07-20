@@ -13,6 +13,7 @@
  */
 package ph.extremelogic.common.core.config;
 
+import static ph.extremelogic.common.core.config.util.FileUtil.getInputStream;
 import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setFieldValue;
 
 import org.apache.commons.logging.Log;
@@ -20,13 +21,10 @@ import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -177,7 +175,6 @@ public class ConfigurationLoader {
         return profile;
     }
 
-
     private void setEncryptionKeyByPrecedence(String[] args) {
         String encryptionKey = null;
 
@@ -226,8 +223,6 @@ public class ConfigurationLoader {
             }
         }
     }
-
-
 
     /**
      * Recursively flattens a nested map and adds its entries to the configuration map.
@@ -289,23 +284,6 @@ public class ConfigurationLoader {
      */
     public String getProperty(String key) {
         return configuration.get(key);
-    }
-
-    /**
-     * Gets an input stream for a configuration file. Loading initially from resource
-     * alse from current directory.
-     *
-     * @param filename  the name of the file
-     * @param extension the file extension
-     * @return the input stream
-     * @throws IOException if an I/O error occurs
-     */
-    private InputStream getInputStream(String filename, String extension) throws IOException {
-        var input = getClass().getClassLoader().getResourceAsStream(filename + extension);
-        if (input == null) {
-            input = Files.newInputStream(Paths.get(filename + extension));
-        }
-        return input;
     }
 
     /**
