@@ -49,7 +49,7 @@ Here's a simple example of how to use ConfigurationLoader:
 
 1. Basic usage:
 
-```java
+```
 ConfigurationLoader loader = new ConfigurationLoader();
 loader.loadConfiguration();
 
@@ -60,7 +60,7 @@ int port = Integer.parseInt(loader.getProperty("app.mail-server.port"));
 
 2. Using with annotations:
 
-```java
+```
 public class AppConfig {
     @ConfigurationLoader.Value("app.name")
     private String appName;
@@ -83,7 +83,7 @@ System.out.println("App Version: " + appConfig.getAppVersion());
 
 3. Loading YAML configuration:
 
-```java
+```
 ConfigurationLoader loader = new ConfigurationLoader();
 loader.loadYaml();
 
