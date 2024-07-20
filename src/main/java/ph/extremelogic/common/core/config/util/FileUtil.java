@@ -40,15 +40,16 @@ public class FileUtil {
      * @throws ConfigurationException If an I/O error occurs while accessing the file.
      */
     public static InputStream getInputStream(String filename, String extension) throws ConfigurationException {
-        InputStream input = FileUtil.class.getClassLoader().getResourceAsStream(filename + extension);
-        if (input == null) {
-            try {
-                input = Files.newInputStream(Paths.get(filename + extension));
-            } catch (ConfigurationException | IOException e) {
-                throw new ConfigurationException(e);
+        try (InputStream input = FileUtil.class.getClassLoader().getResourceAsStream(filename + extension)) {
+            if (input == null) {
+                return Files.newInputStream(Paths.get(filename + extension));
             }
+            return input;
+        } catch (IOException e) {
+            throw new ConfigurationException("Error opening file: " + filename + extension, e);
         }
-        return input;
     }
+
+
 }
 
