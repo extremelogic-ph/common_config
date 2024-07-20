@@ -26,14 +26,12 @@ ConfigurationLoader is a flexible and powerful configuration management library 
 
 ### Installation
 
-**Note: The dependency information below is not yet set up and will be available in a few days.**
-
 Add the following dependency to your `pom.xml` file:
 
 ```
 <dependency>
     <groupId>ph.extremelogic.common.core.config</groupId>
-    <artifactId>common-config</artifactId>
+    <artifactId>extremelogic-common-config</artifactId>
     <version>0.0.1</version>
 </dependency>
 ```
@@ -42,7 +40,7 @@ Or for Gradle, add this to your build.gradle file:
 gradle
 
 ```
-implementation 'ph.extremelogic.common.core.config:common-config:0.0.1'
+implementation 'ph.extremelogic.common.core.config:extremelogic-common-config:0.0.1'
 ```
 
 ### Usage

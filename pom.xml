@@ -4,11 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ph.extremelogic</groupId>
-    <artifactId>configuration-loader</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>extremelogic-common-config</artifactId>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>configuration-loader</name>
+    <name>Extreme Logic Common Config</name>
+    <url>https:\\www.extremelogic.ph</url>
     <description>Configuration Loader for Properties and YAML files</description>
 
     <properties>
@@ -17,6 +18,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
     </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
 
     <dependencies>
         <!-- JUnit 5 dependencies for unit testing -->
@@ -87,7 +100,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>ph.extremelogic.common.core.config.ConfigurationLoader</mainClass>
+                                    <mainClass>ph.extremelogic.common.core.config.encrypt.DefaultPropertyEncryptor</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -103,6 +116,40 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>ph.extremelogic.common.core.config.encrypt.DefaultPropertyEncryptor</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Virgilio "Jan" So</name>
+            <email>virgilio.so@extremelogic.ph</email>
+            <organization>Extreme Logic</organization>
+            <organizationUrl>https://www.extremelogic.ph</organizationUrl>
+            <timezone>UTC+08:00</timezone>
+        </developer>
+    </developers>
 </project>
