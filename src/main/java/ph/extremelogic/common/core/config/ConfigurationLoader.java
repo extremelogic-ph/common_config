@@ -30,6 +30,15 @@ import java.util.regex.Pattern;
 import static ph.extremelogic.common.core.config.util.FileUtil.getInputStream;
 import static ph.extremelogic.common.core.config.util.ReflectiveValueSetter.setFieldValue;
 
+/**
+ * The ConfigurationLoader class is responsible for loading configuration properties
+ * from various sources such as YAML files, environment variables, and system properties.
+ * It also supports placeholder resolution and property encryption.
+ * <p>
+ * This class provides methods to set custom configuration names, property encryptors,
+ * and behavior for handling exceptions during configuration loading.
+ * </p>
+ */
 public class ConfigurationLoader {
     private static final Log logger = LogFactory.getLog(ConfigurationLoader.class);
 
@@ -39,8 +48,10 @@ public class ConfigurationLoader {
     public static final String CONFIG_PROFILES_ACTIVE_PROP = DEFAULT_CONFIG_NAME + ".profiles.active";
     public static final String CONFIG_PROFILES_ACTIVE_ENV = DEFAULT_CONFIG_NAME.toUpperCase() + "_PROFILES_ACTIVE";
 
-    private final Map<String, String> configuration = new HashMap<>();
+    private final Map<String, String> configuration = new LinkedHashMap<>();
     private Map<String, String> env = System.getenv();
+
+    private static final Pattern NON_ALPHA_NUMERIC = Pattern.compile("[^a-zA-Z0-9]");
 
 
     private PropertyEncryptor propertyEncryptor;
@@ -63,6 +74,15 @@ public class ConfigurationLoader {
         String value();
     }
 
+    protected void put(String key, String value) {
+        configuration.put(normalizeKey(key), value);
+    }
+
+    private String normalizeKey(String key) {
+        // Convert to lowercase and remove all non-alphanumeric characters
+        return NON_ALPHA_NUMERIC.matcher(key.toLowerCase()).replaceAll("");
+    }
+
     /**
      * Loads properties from a .properties file.
      *
@@ -74,7 +94,7 @@ public class ConfigurationLoader {
             properties.load(input);
             for (var key : properties.stringPropertyNames()) {
                 var value = properties.getProperty(key);
-                configuration.put(key, decryptIfNeeded(value));
+                put(key, decryptIfNeeded(value));
             }
         } catch (ConfigurationException | IOException e) {
             var msg = "Unable to load " + name + ".properties " + e.getLocalizedMessage();
@@ -225,7 +245,7 @@ public class ConfigurationLoader {
     }
 
     private String getConfigValue(String propertyKey, String envKey, String defaultValue) {
-        String value = configuration.get(propertyKey);
+        String value = getProperty(propertyKey);
         if (value == null || value.isEmpty()) {
             value = env.get(envKey);
         }
@@ -270,14 +290,14 @@ public class ConfigurationLoader {
      * @param map    the map to flatten
      */
     private void flattenMap(String prefix, Map<String, Object> map) {
-        for (var entry : map.entrySet()) {
-            var key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
             if (entry.getValue() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> nestedMap = (Map<String, Object>) entry.getValue();
                 flattenMap(key, nestedMap);
             } else {
-                configuration.put(key, decryptIfNeeded(entry.getValue().toString()));
+                put(key, decryptIfNeeded(entry.getValue().toString()));
             }
         }
     }
@@ -285,11 +305,11 @@ public class ConfigurationLoader {
     /**
      * Loads environment variable to override configuration.
      */
-    public void loadEnvironmentVariables() {
-        for (var entry : env.entrySet()) {
-            var key = convertEnvToPropertyKey(entry.getKey());
+    protected void loadEnvironmentVariables() {
+        for (Map.Entry<String, String> entry : env.entrySet()) {
+            String key = convertEnvToPropertyKey(entry.getKey());
             if (key != null) {
-                configuration.put(key, decryptIfNeeded(entry.getValue()));
+                put(key, decryptIfNeeded(entry.getValue()));
             }
         }
     }
@@ -310,9 +330,7 @@ public class ConfigurationLoader {
      * @return the converted property key, or null if the key is not valid
      */
     private String convertEnvToPropertyKey(String envKey) {
-        return envKey
-                .toLowerCase()
-                .replace("_", ".");
+        return envKey.toLowerCase().replace('_', '.');
     }
 
     /**
@@ -322,7 +340,7 @@ public class ConfigurationLoader {
      * @return the value of the property, or null if not found
      */
     public String getProperty(String key) {
-        return configuration.get(key);
+        return configuration.get(normalizeKey(key));
     }
 
     /**
@@ -390,10 +408,19 @@ public class ConfigurationLoader {
         return propertyEncryptor.decrypt(encryptedValue);
     }
 
+    /**
+     * Returns the list of active profiles for the current configuration.
+     *
+     * @return A list of strings representing the active profiles.
+     */
     public List<String> getActiveProfiles() {
         return activeProfiles;
     }
 
+    /**
+     * Loads system properties into the configuration.
+     * Any encrypted values are decrypted before being added.
+     */
     private void loadSystemProperties() {
         var sysProps = System.getProperties();
         for (var key : sysProps.stringPropertyNames()) {
@@ -401,6 +428,13 @@ public class ConfigurationLoader {
         }
     }
 
+    /**
+     * Processes command line arguments and adds them to the configuration.
+     * Arguments should be in the format "--key=value".
+     * Any encrypted values are decrypted before being added.
+     *
+     * @param args An array of command line arguments.
+     */
     private void loadCommandLineArguments(String[] args) {
         for (var arg : args) {
             if (arg.startsWith("--")) {
@@ -412,12 +446,23 @@ public class ConfigurationLoader {
         }
     }
 
+    /**
+     * Resolves placeholders in all configuration values.
+     * Placeholders are in the format ${key} and are replaced with their corresponding values.
+     */
     private void resolvePlaceholders() {
         for (var entry : configuration.entrySet()) {
             entry.setValue(resolvePlaceholder(entry.getValue()));
         }
     }
 
+    /**
+     * Resolves placeholders in a single string value.
+     * Placeholders are in the format ${key} and are replaced with their corresponding values.
+     *
+     * @param value The string value potentially containing placeholders.
+     * @return The input string with all placeholders resolved, or null if the input is null.
+     */
     private String resolvePlaceholder(String value) {
         if (value == null) return null;
         var matcher = patternVar.matcher(value);
@@ -431,18 +476,39 @@ public class ConfigurationLoader {
         return sb.toString();
     }
 
+    /**
+     * Gets the current configuration name.
+     *
+     * @return The name of the current configuration.
+     */
     public String getConfigName() {
         return configName;
     }
 
+    /**
+     * Sets the configuration name.
+     *
+     * @param configName The new name for the configuration.
+     */
     public void setConfigName(String configName) {
         this.configName = configName;
     }
 
+    /**
+     * Sets the property encryptor to be used for encrypting and decrypting sensitive values.
+     *
+     * @param propertyEncryptor The PropertyEncryptor implementation to be used.
+     */
     public void setPropertyEncryptor(PropertyEncryptor propertyEncryptor) {
         this.propertyEncryptor = propertyEncryptor;
     }
 
+    /**
+     * Sets whether exceptions should be thrown when configuration loading fails.
+     *
+     * @param throwException If true, exceptions will be thrown on configuration loading failures.
+     *                       If false, failures will be logged but not thrown.
+     */
     public void setThrowException(boolean throwException) {
         this.throwException = throwException;
     }

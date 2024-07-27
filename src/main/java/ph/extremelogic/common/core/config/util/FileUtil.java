@@ -49,7 +49,5 @@ public class FileUtil {
             throw new ConfigurationException("Error opening file: " + filename + extension, e);
         }
     }
-
-
 }
 

@@ -168,4 +168,32 @@ class ConfigurationLoaderTest {
         assertEquals("secretPassword", loader.getProperty("app.password"));
         assertEquals("secretPassword", appConfig.getPassword());
     }
+
+    @Test
+    void testRelaxedBinding() {
+        loader.put("test.property", "value1");
+        loader.put("test-kebab-case", "value2");
+        loader.put("TEST_SNAKE_CASE", "value3");
+        loader.put("testCamelCase", "value4");
+
+        assertEquals("value1", loader.getProperty("test.property"));
+        assertEquals("value1", loader.getProperty("TEST_PROPERTY"));
+        assertEquals("value1", loader.getProperty("test-property"));
+        assertEquals("value1", loader.getProperty("testProperty"));
+
+        assertEquals("value2", loader.getProperty("test.kebab.case"));
+        assertEquals("value2", loader.getProperty("TEST_KEBAB_CASE"));
+        assertEquals("value2", loader.getProperty("test-kebab-case"));
+        assertEquals("value2", loader.getProperty("testKebabCase"));
+
+        assertEquals("value3", loader.getProperty("test.snake.case"));
+        assertEquals("value3", loader.getProperty("TEST_SNAKE_CASE"));
+        assertEquals("value3", loader.getProperty("test-snake-case"));
+        assertEquals("value3", loader.getProperty("testSnakeCase"));
+
+        assertEquals("value4", loader.getProperty("test.camel.case"));
+        assertEquals("value4", loader.getProperty("TEST_CAMEL_CASE"));
+        assertEquals("value4", loader.getProperty("test-camel-case"));
+        assertEquals("value4", loader.getProperty("testCamelCase"));
+    }
 }
