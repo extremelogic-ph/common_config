@@ -5,7 +5,7 @@
 
     <groupId>ph.extremelogic</groupId>
     <artifactId>extremelogic-common-config</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <packaging>jar</packaging>
 
     <name>Extreme Logic Common Config</name>
@@ -60,6 +60,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <!-- Compiler plugin to use Java 8 -->
             <plugin>
@@ -96,6 +97,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.yaml:snakeyaml</include>
+                                    <!-- Include other dependencies as needed -->
+                                </includes>
+                            </artifactSet>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -121,7 +128,7 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.1.1</version>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
@@ -134,7 +141,7 @@
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>
+            </plugin-->
         </plugins>
     </build>
     <licenses>
