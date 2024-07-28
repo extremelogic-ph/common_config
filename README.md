@@ -186,6 +186,29 @@ The ConfigurationLoader will automatically decrypt these values when loading the
 - The encryption key must be exactly 16 characters long.
 - Placeholder resolution is currently limited to simple ${key} syntax and does not support nested placeholders.
 
+## Build
+
+Build the jar file. Had to explicitly mention `shade:shade`, not working without it. 
+
+```shell
+mvn clean compile package shade:shade
+```
+
+To install
+
+```shell
+mvn install:install-file -Dfile=target/extremelogic-common-config-0.0.2.jar -DpomFile=pom.xml
+```
+
+To deploy
+
+```shell
+mvn deploy:deploy-file \
+  -Dfile=target/extremelogic-common-config-0.0.2.jar \
+  -DpomFile=pom.xml
+
+```
+
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
