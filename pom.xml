@@ -96,6 +96,52 @@
                 </configuration>
             </plugin>
 
+            <!-- Source Plugin to generate the source jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Javadoc Plugin to generate the javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- GPG Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Shade plugin to package dependencies and resources into the JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -139,20 +185,6 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.1.1</version>
             </plugin>
-            <!--plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>ph.extremelogic.common.core.config.encrypt.DefaultPropertyEncryptor</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin-->
         </plugins>
     </build>
     <licenses>
@@ -170,4 +202,10 @@
             <timezone>UTC+08:00</timezone>
         </developer>
     </developers>
+    <scm>
+        <connection>scm:git:git://github.com/extremelogic-ph/common_config.git</connection>
+        <developerConnection>scm:git:ssh://github.com/extremelogic-ph/common_config.git</developerConnection>
+        <url>https://github.com/extremelogic-ph/common_config</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
