@@ -191,22 +191,7 @@ The ConfigurationLoader will automatically decrypt these values when loading the
 Build the jar file. Had to explicitly mention `shade:shade`, not working without it. 
 
 ```shell
-mvn clean compile package shade:shade
-```
-
-To install
-
-```shell
-mvn install:install-file -Dfile=target/extremelogic-common-config-0.0.2.jar -DpomFile=pom.xml
-```
-
-To deploy
-
-```shell
-mvn deploy:deploy-file \
-  -Dfile=target/extremelogic-common-config-0.0.2.jar \
-  -DpomFile=pom.xml
-
+mvn clean compile package shade:shade deploy
 ```
 
 ## Contributing
