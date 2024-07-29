@@ -19,6 +19,7 @@ import ph.extremelogic.common.core.config.ConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -36,30 +37,32 @@ public class FileUtil {
      * to load it using the system class loader. If the resource is still not found, it
      * attempts to load it from the file system.
      *
-     * @param filename  The name of the file (without extension).
-     * @param extension The file extension (e.g., ".txt", ".properties").
+     * @param filePath  The full path of the file (including filename and extension).
      * @return An InputStream for reading the file, or {@code null} if the file is not found.
      * @throws ConfigurationException If an I/O error occurs while accessing the file.
      */
-    public static InputStream getInputStream(String filename, String extension) throws ConfigurationException {
+    public static InputStream getInputStream(String filePath) throws ConfigurationException {
         InputStream input = null;
         try {
+            Path path = Paths.get(filePath);
+            String filename = path.getFileName().toString();
+
             // First, try to load from the current thread's context class loader
-            input = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename + extension);
+            input = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
 
             // If not found, try to load from the system class loader
             if (input == null) {
-                input = ClassLoader.getSystemClassLoader().getResourceAsStream(filename + extension);
+                input = ClassLoader.getSystemClassLoader().getResourceAsStream(filename);
             }
 
             // If still not found, try to load from the file system
             if (input == null) {
-                return Files.newInputStream(Paths.get(filename + extension));
+                return Files.newInputStream(path);
             }
 
             return input;
         } catch (IOException e) {
-            throw new ConfigurationException("Error opening file: " + filename + extension, e);
+            throw new ConfigurationException("Error opening file: " + filePath, e);
         }
     }
 }

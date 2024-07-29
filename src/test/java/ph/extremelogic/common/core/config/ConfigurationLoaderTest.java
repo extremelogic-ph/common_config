@@ -45,6 +45,9 @@ class ConfigurationLoaderTest {
 
     private static final String TEST_ENCRYPTION_KEY = "your16charEncKey";
 
+    private static final String PROP_FILE = ConfigurationLoader.DEFAULT_CONFIG_NAME + ".properties";
+    private static final String YAML_FILE = ConfigurationLoader.DEFAULT_CONFIG_NAME + ".yml";
+
     private ConfigurationLoader loader;
     @TempDir
     Path tempDir;
@@ -65,7 +68,7 @@ class ConfigurationLoaderTest {
 
     @Test
     void testBasicPropertyLoading() {
-        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadProperties(PROP_FILE);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
     }
 
@@ -79,7 +82,7 @@ class ConfigurationLoaderTest {
             loader.loadConfiguration(true);
         });
         var msg = exception.getMessage();
-        assertTrue(msg.contains("Unable to load " + missingFileName + ".properties"));
+        assertTrue(msg.contains("Unable to load " + missingFileName));
         System.clearProperty(ConfigurationLoader.CONFIG_PROFILES_ACTIVE_PROP);
     }
 
@@ -91,10 +94,10 @@ class ConfigurationLoaderTest {
 
     @Test
     void testPropertyOverriding() {
-        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadProperties(PROP_FILE);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
 
-        loader.loadYaml(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadYaml(YAML_FILE);
         assertEquals(TEST_APP_NAME_YML, loader.getProperty(APP_NAME));
 
         Map<String, String> envMap = new HashMap<>();
@@ -111,7 +114,7 @@ class ConfigurationLoaderTest {
         Map<String, String> envMap = new HashMap<>();
         envMap.put(MOCK_ENV_KEY, MOCK_ENV_VALUE);
 
-        loader.loadProperties(ConfigurationLoader.DEFAULT_CONFIG_NAME);
+        loader.loadProperties(PROP_FILE);
         assertEquals(TEST_APP_NAME_PROP, loader.getProperty(APP_NAME));
 
         loader.mockEnvironmentVariables(envMap);

@@ -86,18 +86,18 @@ public class ConfigurationLoader {
     /**
      * Loads properties from a .properties file.
      *
-     * @param name the name of the file to load (without extension)
+     * @param fileName the name of the file to load
      */
-    public void loadProperties(String name) {
+    public void loadProperties(String fileName) {
         var properties = new Properties();
-        try (var input = getInputStream(name, ".properties")) {
+        try (var input = getInputStream(fileName)) {
             properties.load(input);
             for (var key : properties.stringPropertyNames()) {
                 var value = properties.getProperty(key);
                 put(key, decryptIfNeeded(value));
             }
         } catch (ConfigurationException | IOException e) {
-            var msg = "Unable to load " + name + ".properties " + e.getLocalizedMessage();
+            var msg = "Unable to load " + fileName + " " + e.getLocalizedMessage();
             logger.warn(msg);
             if (throwException) {
                 throw new ConfigurationException(msg, e);
@@ -106,22 +106,22 @@ public class ConfigurationLoader {
     }
 
     public void loadProperties() {
-        loadProperties(configName);
+        loadProperties(configName + ".properties");
     }
 
 
     /**
      * Loads configuration from a YAML file.
      *
-     * @param name the name of the file to load (without extension)
+     * @param fileName the name of the file to load
      */
-    public void loadYaml(String name) {
+    public void loadYaml(String fileName) {
         Yaml yaml = new Yaml();
-        try (var input = getInputStream(name, ".yml")) {
+        try (var input = getInputStream(fileName)) {
             Map<String, Object> yamlMap = yaml.load(input);
             flattenMap("", yamlMap);
         } catch (ConfigurationException | IOException e) {
-            var msg = "Unable to load " + name + ".yml " + e.getLocalizedMessage();
+            var msg = "Unable to load " + fileName + " " + e.getLocalizedMessage();
             logger.warn(msg);
             if (throwException) {
                 throw new ConfigurationException(msg, e);
@@ -130,7 +130,7 @@ public class ConfigurationLoader {
     }
 
     public void loadYaml() {
-        loadYaml(configName);
+        loadYaml(configName + ".yml");
     }
 
     /**
@@ -144,8 +144,8 @@ public class ConfigurationLoader {
         setEncryptionKeyByPrecedence(args);
 
         // Load default configurations
-        loadProperties(name);
-        loadYaml(name);
+        loadProperties(name + ".properties");
+        loadYaml(name + ".yml");
 
         var activeProfile = getConfigProfilesActiveByPrecedence(args);
 
