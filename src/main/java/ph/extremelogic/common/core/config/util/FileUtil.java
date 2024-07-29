@@ -31,19 +31,32 @@ public class FileUtil {
 
     /**
      * Retrieves an InputStream for the given file name with the specified extension.
-     * The method first attempts to load the file as a resource from the classpath.
-     * If the resource is not found, it attempts to load it from the file system.
+     * The method first attempts to load the file as a resource from the classpath using
+     * the current thread's context class loader. If the resource is not found, it attempts
+     * to load it using the system class loader. If the resource is still not found, it
+     * attempts to load it from the file system.
      *
      * @param filename  The name of the file (without extension).
      * @param extension The file extension (e.g., ".txt", ".properties").
-     * @return An InputStream for reading the file.
+     * @return An InputStream for reading the file, or {@code null} if the file is not found.
      * @throws ConfigurationException If an I/O error occurs while accessing the file.
      */
     public static InputStream getInputStream(String filename, String extension) throws ConfigurationException {
-        try (InputStream input = FileUtil.class.getClassLoader().getResourceAsStream(filename + extension)) {
+        InputStream input = null;
+        try {
+            // First, try to load from the current thread's context class loader
+            input = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename + extension);
+
+            // If not found, try to load from the system class loader
+            if (input == null) {
+                input = ClassLoader.getSystemClassLoader().getResourceAsStream(filename + extension);
+            }
+
+            // If still not found, try to load from the file system
             if (input == null) {
                 return Files.newInputStream(Paths.get(filename + extension));
             }
+
             return input;
         } catch (IOException e) {
             throw new ConfigurationException("Error opening file: " + filename + extension, e);
